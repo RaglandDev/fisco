@@ -1,7 +1,7 @@
-"use server"
+"use server";
 
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { neon } from '@neondatabase/serverless';
+import { neon } from "@neondatabase/serverless";
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -36,9 +36,9 @@ export async function syncUser() {
         VALUES (${userId}, ${user.emailAddresses[0].emailAddress}, ${user.firstName}, ${user.lastName}, ${user.imageUrl})
       `;
     }
-    
-    console.log('User synced to db successfully');
+
+    console.log("User synced to db successfully");
   } catch (error) {
-    console.error('Error syncing user:', error);
+    console.error("Error syncing user:", error);
   }
 }
