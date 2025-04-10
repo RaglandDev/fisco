@@ -6,6 +6,9 @@ import {
   UserButton,
 } from '@clerk/nextjs'
 
+import { currentUser } from "@clerk/nextjs/server";
+import { syncUser } from "@actions/user.action"
+
 async function dbTest() {
   const res = await fetch(`${process.env.API_URL}/api/testendpoint`, {
     cache: 'no-store',
@@ -16,6 +19,8 @@ async function dbTest() {
 export default async function Home() {
 
 const testData = await dbTest();
+const user = await currentUser();
+if (user) await syncUser();
 
   return (
     <>
