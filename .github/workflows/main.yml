@@ -34,5 +34,8 @@ jobs:
         working-directory: ./fisco
         run: 
           npm install -g vercel
-          vercel link --token=${{ secrets.VERCEL_TOKEN }} --yes
-          vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+
