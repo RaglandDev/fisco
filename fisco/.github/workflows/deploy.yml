@@ -1,0 +1,12 @@
+      - name: Install dependencies
+        run: npm install
+        working-directory: fisco
+
+      - name: Run tests
+        run: npm run coverage
+        working-directory: fisco
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          API_KEY: ${{ secrets.API_KEY }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_aW1tb3J0YWwtdGl0bW91c2UtMi5jbGVyay5hY2NvdW50cy5kZXYk
+          CLERK_SECRET_KEY: sk_test_YDTKLc9Im1PIij7o18KU6VAR4NZIUMQDt
