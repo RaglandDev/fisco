@@ -1,0 +1,34 @@
+name: Run tests and deploy
+
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Change directory
+        run: cd fisco && npm install
+
+      - name: Run tests
+        run: cd fisco && npm run coverage
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          API_KEY: ${{ secrets.API_KEY }}
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: ${{ success() }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Change directory
+        run: cd fisco && npm install -g vercel
+
+      - name: Deploy to Vercel
+        run: cd fisco && vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
