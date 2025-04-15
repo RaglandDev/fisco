@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install Vercel CLI
         working-directory: ./fisco
-        run: 
+        run: |
           npm install -g vercel
           vercel link --token=${{ secrets.VERCEL_TOKEN }} --yes
           vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
