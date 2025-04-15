@@ -31,4 +31,4 @@ jobs:
         run: cd fisco && npm install -g vercel
 
       - name: Deploy to Vercel
-        run: cd fisco && vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: cd fisco && vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
