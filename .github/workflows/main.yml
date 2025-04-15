@@ -15,12 +15,14 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install dependencies
+        working-directory: ./fisco
         run: npm install
-        working-directory: fisco
+        
 
       - name: Run tests
+        working-directory: ./fisco
         run: npm run coverage
-        working-directory: fisco
+          
 
   deploy:
     needs: test
@@ -30,9 +32,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Vercel CLI
+        working-directory: ./fisco
         run: npm install -g vercel
-        working-directory: fisco
+        
 
       - name: Deploy to Vercel
+        working-directory: ./fisco
         run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
-        working-directory: fisco
