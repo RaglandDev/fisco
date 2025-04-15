@@ -1,4 +1,4 @@
-name: Run tests and deploy
+name: Run Tests and Deploy
 
 on:
   push:
@@ -17,12 +17,10 @@ jobs:
       - name: Install dependencies
         working-directory: ./fisco
         run: npm install
-        
 
       - name: Run tests
         working-directory: ./fisco
         run: npm run coverage
-          
 
   deploy:
     needs: test
@@ -30,22 +28,10 @@ jobs:
     if: ${{ success() }}
     steps:
       - uses: actions/checkout@v3
-  
+
       - name: Install Vercel CLI
         run: npm install -g vercel
-  
-      - name: Link Vercel Project
+
+      - name: Deploy to Vercel
         working-directory: ./fisco
-        run: vercel link --token=${{ secrets.VERCEL_TOKEN }} --yes
-  
-      - name: Pull Vercel Environment
-        working-directory: ./fisco
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-  
-      - name: Build Project
-        working-directory: ./fisco
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-  
-      - name: Deploy Project
-        working-directory: ./fisco
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
