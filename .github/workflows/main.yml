@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: ${{secrets.DATABASE_URL}}
-      API_KEY: ${{secrets.API_KEY}}
+      API_URL: ${{secrets.API_URL}}
     steps:
       - uses: actions/checkout@v3
 
