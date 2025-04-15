@@ -1,6 +1,11 @@
 "use client";
+import { TestDataType } from "@/types/Home.client"
 
-export default function ClientHome({ testData }) {
+type Props = {
+  testData: TestDataType[];
+};
+
+export default function ClientHome({ testData }: Props) {
   return (
     <ul>
       {testData.map((item) => (
