@@ -15,10 +15,10 @@ jobs:
         run: cd fisco && npm install
 
       - name: Run tests
-        run: cd fisco && npm run coverage
+        run: cd fisco && npm run coverage && echo {{ secrets.DATABASE_URL }}
         env:
-          DATABASE_URL: ${{ vars.DATABASE_URL }}
-          API_KEY: ${{ vars.API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          API_KEY: ${{ secrets.API_KEY }}
 
   deploy:
     needs: test
