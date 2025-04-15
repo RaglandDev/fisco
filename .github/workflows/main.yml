@@ -3,22 +3,26 @@ name: Run tests and deploy
 on:
   push:
     branches:
-      - main 
+      - main
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      API_URL: ${{ secrets.API_URL }}
     steps:
       - uses: actions/checkout@v3
 
-      - name: Change directory
-        run: cd fisco && npm install
+      - name: Install dependencies
+        working-directory: ./fisco
+        run: npm install
+        
 
       - name: Run tests
-        run: cd fisco && npm run coverage
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          API_KEY: ${{ secrets.API_KEY }}
+        working-directory: ./fisco
+        run: npm run coverage
+          
 
   deploy:
     needs: test
@@ -26,9 +30,8 @@ jobs:
     if: ${{ success() }}
     steps:
       - uses: actions/checkout@v3
-
-      - name: Change directory
-        run: cd fisco && npm install -g vercel
-
-      - name: Deploy to Vercel
-        run: cd fisco && vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Install Vercel CLI
+        working-directory: ./fisco
+        run: 
+          npm install -g vercel
+          vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
