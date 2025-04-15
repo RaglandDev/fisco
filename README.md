@@ -1,72 +1,83 @@
-# Project Directory Overview
+## Testing
+All unit tests are located in ``fisco/__tests__``; API routes, client components, and server components have their own separate directories.
+- Test framework/runner: [Vitest](https://vitest.dev/)
+- Component testing: [React testing library](https://testing-library.com/docs/react-testing-library/intro/)
+-  API mocking: [MSW](https://mswjs.io/)
 
-## Directory Structure
+tip: ``screen.debug();`` can be very useful when debugging component tests
 
-```
-fisco/
-├── app/                  
-│   ├── actions/          # Mutation functions to interact with the database (Next.js server actions)
-│   ├── api/              # API endpoints for fetching data from the database
-│   │   └── [endpoint]/   # Each endpoint is organized in its own directory
-│   ├── components/       # React components
-│   ├── route-example/    # Example Next.js route (e.g., /route-example)
-│   ├── layout.tsx        # Root app component, includes ClerkProvider for authentication
-│   ├── page.tsx          # Basic top-level component for the homepage
-├── package.json          # NPM scripts and project dependencies
-```
+### Server-side components (async) 
+- Testing components from @/components/server/
+- Using Vitest to mock API responses from @/lib/
+- React testing library is primarily for testing synchronous, client-side components (whose render time is not bottlenecked by a network), so when using it with server components here don't forget to use ``await``
 
-### Key Files and Directories
+### Client-side components (sync)
+- Testing components from @/components/client/
+- Mostly prop-passing to client-side components and then checking that they render the props correctly with React testing library
 
-- **fisco/config**  
-  Configuration files including `.env`. Ensure your environment variables are set here.
+### Next.js API Routes
+- Testing API endpoints from @/api/*/
+- Using MSW to intercept http requests to the API endpoints, and then mock a response
+- The ``handlers`` array contains specified endpoints and the response that they will return
 
-- **fisco/app/actions**  
-  Contains server-side mutation actions for interacting with the database using Next.js server actions.
+### Commands
+- ``npm run test`` runs tests and hot-reloads when you save changes to a file
+- ``npm run coverage`` runs tests once and generates a coverage report in ``fisco/coverage/``
 
-- **fisco/app/api**  
-  Directory for API endpoints that handle data fetching from the database. Each endpoint has its own subdirectory.
+### Misc.
+- Try to get >=95% code coverage on tests
+- Still trying to figure out how to test Next.js server actions
+- ``vitest.config.mts`` is Vitest's config file
+- Following naming convention and add ``.test.tsx`` in order for Vitest to recognize your tests
 
-- **fisco/app/components**  
-  Place for reusable React components.
+##  Application Overview 
+Core application located in ``fisco/app/``
+### Next.js Server Actions
+- Located in ``fisco/app/actions``
+- POST requests to the database for mutating data
 
-- **fisco/app/route-example**  
-  Example of a Next.js route. The route is automatically created by the folder (e.g., `localhost:3000/route-example`). The React component for the page goes inside.
+### Next.js API Routes
+- Located in ``fisco/app/api/``
+- GET requests to the database for retrieving data
+- Each endpoint in ``api/`` has its own named directory with a ``route.ts`` file inside of it
 
-- **fisco/app/layout.tsx**  
-  The root layout of the application, which includes the `ClerkProvider` component for authentication.
+### React Components
+- Located in ``fisco/app/components/``
+- Separated into two separate directories; one for server-side components, and one for client-side components
 
-- **fisco/app/page.tsx**  
-  The top-level component rendered on the homepage.
+#### Client-side
+- Located in ``fisco/app/components/client/``
+- `'use client'` must be written at the top of the file
+- These should **not** be making any requests to the database
+- These **should** display data passed down as props from parents
 
-## Local Setup
+#### Server-side
+- Located in ``fisco/app/components/server/``
+- These can make requests to the database
 
-To run the project locally:
+### Library
+- Located in ``fisco/app/lib/``
+- A good place to put your async functions that make API calls
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   ```
+### ``route-example/``
+This is an example of Next.js file-based routing, where each subdirectory of ``app/`` that has a ``page.tsx`` in it will become a Next.js route. So this directory is reachable as a route from http://localhost:3000/route-example.
 
-2. Navigate to the `fisco` subdirectory:
-   ```bash
-   cd fisco
-   ```
+### ``types/``
+This is where all of our types live. Global types are in ``types/index.d.ts`` and any types needed for a new component can be placed in a new file ``component_name.ts``.
 
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
+## Other
+- Don't forget to set your .env variables and place it in ``fisco/``
+- ``package.json`` is where you can add or change scripts, as well as view installed packages
+- Remember to ``npm run build`` and ``npm run start`` before you push to make sure the production build doesn't fail
+- If you install new packages that are only needed for development and not production, use ``npm install -D YourPackageNameHere``
+- ``git pull`` frequently to avoid merge conflicts
 
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-5. Explore the scripts available in `package.json` for additional functionality.
-
-## Useful Notes
-
-- Ensure that your `.env` file is correctly configured in the `fisco/` directory. (see discord)
-- For new routes, create a folder under `fisco/app` and add a corresponding React component inside it.
-- The `ClerkProvider` is used for authentication and must be included in the `layout.tsx` file.
-
+## Useful commands
+- ``npm install``
+- ``npm run build``
+- ``npm run start``
+- ``npm run dev``
+- ``npm run test``
+- ``npm run coverage``
+- ``npm run lint``
+- ``npm install -D <...>``

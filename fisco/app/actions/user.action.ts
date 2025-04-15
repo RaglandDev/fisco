@@ -35,7 +35,6 @@ export async function syncUser() {
       `;
     }
 
-    console.log("User synced to db successfully");
   } catch (error) {
     console.error("Error syncing user:", error);
   }

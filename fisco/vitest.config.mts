@@ -5,7 +5,7 @@ import path from "path";
 
 export default defineConfig({
   plugins: [tsconfigPaths(), react()],
-   resolve: {
+  resolve: {
     alias: {
       "@": path.resolve(__dirname, "app"),
     },
@@ -16,10 +16,17 @@ export default defineConfig({
     env: loadEnv('', process.cwd(), ''),
     coverage: {
       provider: "v8",
-      include: ["app/**/*.{ts,tsx}"],
-      exclude: [
-        "**",           // exclude everything in fisco/
-        "!app/**/*.{ts,tsx}" // re-include only TypeScript files in app/
+      include: [
+        'app/components/**/*.{ts,tsx}',
+        'app/actions/**/*.{ts,tsx}',
+        'app/api/**/*.{ts,tsx}',
       ],
-    }
-}})
+      exclude: [
+        '**/__tests__/**',
+        '**/*.test.{ts,tsx}',
+        '**/*.spec.{ts,tsx}',
+        'node_modules/',
+      ],
+    },
+  },
+})
