@@ -30,13 +30,22 @@ jobs:
     if: ${{ success() }}
     steps:
       - uses: actions/checkout@v3
-      - name: Vercel CLI
+  
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+  
+      - name: Link Vercel Project
         working-directory: ./fisco
-        run: |
-          npm install -g vercel 
-          vercel link --token=${{ secrets.VERCEL_TOKEN }} --yes 
-          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} &&
-          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }} &&
-          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-
+        run: vercel link --token=${{ secrets.VERCEL_TOKEN }} --yes
+  
+      - name: Pull Vercel Environment
+        working-directory: ./fisco
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+  
+      - name: Build Project
+        working-directory: ./fisco
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+  
+      - name: Deploy Project
+        working-directory: ./fisco
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
