@@ -5,7 +5,7 @@ import { GET } from '@/api/testendpoint/route';
 
 
 const handlers = [
-  http.get('http://localhost:3000/api/testendpoint', (req) => {
+  http.get(`${process.env.API_URL}/api/testendpoint`, (req) => {
     return new HttpResponse(null, {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -30,7 +30,7 @@ afterEach(() => {
 afterAll(() => server.close());
 
 it('returns mocked data from GET /api/testendpoint', async () => {
-  const request = new Request('http://localhost:3000/api/testendpoint', {
+  const request = new Request(`${process.env.API_URL}/api/testendpoint`, {
     method: 'GET',
   });
 
