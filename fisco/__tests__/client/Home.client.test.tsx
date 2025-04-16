@@ -29,8 +29,8 @@ describe("Home component", () => {
 
     render(<ClientHome testData={testData} />);
 
-    expect(screen.getByText("1")).toBeDefined()
-    expect(screen.getByText("2")).toBeDefined()
+    expect(screen.getByText("alice")).toBeInTheDocument()
+    expect(screen.getByText("Hi!")).toBeInTheDocument()
     // screen.debug() useful func
   });
 });

@@ -4,8 +4,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Post } from "@/types/Post";
 
 type Props = {
-  //testData: TestDataType[];
-  posts?: Post[];
+  testData?: TestDataType[];
+  // posts?: Post[];
 };
 
 // Inline CSS styles used throughout the component
@@ -59,10 +59,10 @@ const styles = {
       fontSize: "0.85rem",
       color: "#888",
     },
-  };
+};
 
-export default function ClientHome({ posts = [] }: Props) {
-    const [visiblePosts, setVisiblePosts] = useState<Post[]>(posts.slice(0, 5));
+export default function ClientHome({ testData = [] }: Props) {
+    const [visiblePosts, setVisiblePosts] = useState<Post[]>(testData.slice(0, 5));
     const [postIndex, setPostIndex] = useState(5);
     const loaderRef = useRef<HTMLDivElement | null>(null);
   
@@ -72,14 +72,14 @@ export default function ClientHome({ posts = [] }: Props) {
           return [
             ...prevVisible,
             ...Array.from({ length: 5 }).map((_, i) => {
-              const nextIndex = (prevVisible.length + i) % posts.length;
-              return posts[nextIndex];
+              const nextIndex = (prevVisible.length + i) % testData.length;
+              return testData[nextIndex];
             }),
           ];
         });
       
         setPostIndex((prevIndex) => prevIndex + 5);
-      }, [posts]);
+      }, [testData]);
   
     useEffect(() => {
       const observer = new IntersectionObserver(
@@ -110,11 +110,11 @@ export default function ClientHome({ posts = [] }: Props) {
           <section key={`${post.id}-${idx}`} style={styles.postContainer}>
             <div style={styles.card}>
               <p style={styles.author}>@{post.author}</p>
-              <img src={post.image} style={styles.image} />
+              {/* <img src={post.image} style={styles.image} />
               <p style={styles.content}>{post.content}</p>
               <p style={styles.date}>
                 {new Date(post.createdAt).toLocaleString()}
-              </p>
+              </p> */}
             </div>
           </section>
         ))}

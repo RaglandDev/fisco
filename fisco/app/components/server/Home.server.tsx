@@ -1,9 +1,9 @@
 import {SignedOut, SignInButton, SignUpButton, SignedIn, UserButton } from "@clerk/nextjs"
-import { getHomeData } from "@/lib/getHomeData";
+import { getHomeData, getPostData } from "@/lib/getHomeData";
 import ClientHome from "@/components/client/Home.client";
 
 export default async function Home() {
-  const { posts } = await getHomeData();
+  const { testData } = await getHomeData();
   // const { testData } = await getHomeData();
   return (
       
@@ -19,8 +19,8 @@ export default async function Home() {
     */
       <>
       
-      {/* <ClientHome testData={testData} /> */}
-      <ClientHome posts={posts} />
+      <ClientHome testData={testData} /> 
     </>
+        // <ClientHome posts={posts} />
     );
 }
