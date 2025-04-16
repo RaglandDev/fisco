@@ -6,7 +6,8 @@ export default async function Home() {
   const { posts } = await getHomeData();
   // const { testData } = await getHomeData();
   return (
-      <>
+      
+    /*  
       <SignedOut> clerk stuff needs to be mocked still
         <SignInButton mode="modal" />
         <SignUpButton mode="modal" />
@@ -15,7 +16,9 @@ export default async function Home() {
       <SignedIn>
         <UserButton />
       </SignedIn>
-
+    */
+      <>
+      
       {/* <ClientHome testData={testData} /> */}
       <ClientHome posts={posts} />
     </>

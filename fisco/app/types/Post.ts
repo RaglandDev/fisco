@@ -3,4 +3,5 @@ export type Post = {
     author: string;
     content: string;
     createdAt: string; 
+    image: string;
 };

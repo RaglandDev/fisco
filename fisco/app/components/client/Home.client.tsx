@@ -5,7 +5,7 @@ import { Post } from "@/types/Post";
 
 type Props = {
   //testData: TestDataType[];
-  posts: Post[];
+  posts?: Post[];
 };
 
 // Inline CSS styles used throughout the component
@@ -15,7 +15,7 @@ const styles = {
       height: "100vh",                         // Full screen height
       overflowY: "scroll" as const,            // Enable vertical scrolling
       scrollSnapType: "y mandatory" as const,  // Snap to posts vertically
-      scrollBehavior: "smooth",                // Smooth scroll experience
+      scrollBehavior: "smooth" as const,               // Smooth scroll experience
     },
     // Each individual post container (full screen)
     postContainer: {
@@ -24,7 +24,7 @@ const styles = {
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      padding: "1rem",
+      padding: "0",
       backgroundColor: "#fff",
       borderBottom: "1px solid #eee",
     },
@@ -32,6 +32,8 @@ const styles = {
     card: {
       maxWidth: "600px",
       width: "100%",
+      maxHeight: "90vh", // stay within the viewport
+      overflowY: "auto" as const, // allow scrolling within the card if content overflows
       padding: "2rem",
       borderRadius: "1rem",
       boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
@@ -41,6 +43,13 @@ const styles = {
     author: {
       fontWeight: "bold",
       fontSize: "1.25rem",
+    },
+    image: {
+        maxWidth: "100%",
+        maxHeight: "70vh",
+        height: "auto",
+        borderRadius: "0.5rem",
+        objectFit: "contain" as const,
     },
     content: {
       margin: "1.5rem 0",
@@ -52,7 +61,7 @@ const styles = {
     },
   };
 
-export default function ClientHome({ posts }: Props) {
+export default function ClientHome({ posts = [] }: Props) {
     const [visiblePosts, setVisiblePosts] = useState<Post[]>(posts.slice(0, 5));
     const [postIndex, setPostIndex] = useState(5);
     const loaderRef = useRef<HTMLDivElement | null>(null);
@@ -101,6 +110,7 @@ export default function ClientHome({ posts }: Props) {
           <section key={`${post.id}-${idx}`} style={styles.postContainer}>
             <div style={styles.card}>
               <p style={styles.author}>@{post.author}</p>
+              <img src={post.image} style={styles.image} />
               <p style={styles.content}>{post.content}</p>
               <p style={styles.date}>
                 {new Date(post.createdAt).toLocaleString()}
