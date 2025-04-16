@@ -1,6 +1,6 @@
 "use client";
 import { TestDataType } from "@/types/Home.client"
-
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Post } from "@/types/Post";
 
 type Props = {
@@ -8,40 +8,111 @@ type Props = {
   posts: Post[];
 };
 
+// Inline CSS styles used throughout the component
+const styles = {
+    // Outer container for the feed
+    feedContainer: {
+      height: "100vh",                         // Full screen height
+      overflowY: "scroll" as const,            // Enable vertical scrolling
+      scrollSnapType: "y mandatory" as const,  // Snap to posts vertically
+      scrollBehavior: "smooth",                // Smooth scroll experience
+    },
+    // Each individual post container (full screen)
+    postContainer: {
+      height: "100vh",                         // Each post takes full screen
+      scrollSnapAlign: "start" as const,       // Align to top of each post
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: "1rem",
+      backgroundColor: "#fff",
+      borderBottom: "1px solid #eee",
+    },
+    // Styling for the post content box
+    card: {
+      maxWidth: "600px",
+      width: "100%",
+      padding: "2rem",
+      borderRadius: "1rem",
+      boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+      backgroundColor: "#f9f9f9",
+      textAlign: "center" as const,
+    },
+    author: {
+      fontWeight: "bold",
+      fontSize: "1.25rem",
+    },
+    content: {
+      margin: "1.5rem 0",
+      fontSize: "1.1rem",
+    },
+    date: {
+      fontSize: "0.85rem",
+      color: "#888",
+    },
+  };
+
 export default function ClientHome({ posts }: Props) {
-  // return (
-  //   <ul>
-  //     {testData.map((item) => (
-  //       <li key={item.id}>{item.id}</li>
-  //     ))}
-  //   </ul>
-  // );
-  return (
-    <main style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
-      <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1rem" }}>User Feed</h1>
-
-      <div>
-        {posts.map((post) => (
-          <div
-            key={post.id}
-            style={{
-              padding: "1rem",
-              marginBottom: "1rem",
-              border: "1px solid #ccc",
-              borderRadius: "6px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              backgroundColor: "#fff"
-            }}
-          >
-            <p style={{ fontWeight: "600" }}>@{post.author}</p>
-            <p>{post.content}</p>
-            <p style={{ fontSize: "0.85rem", color: "#777" }}>
-              {new Date(post.createdAt).toLocaleString()}
-            </p>
-          </div>
+    const [visiblePosts, setVisiblePosts] = useState<Post[]>(posts.slice(0, 5));
+    const [postIndex, setPostIndex] = useState(5);
+    const loaderRef = useRef<HTMLDivElement | null>(null);
+  
+    // Load more posts, looping back to the start if needed
+    const loadMore = useCallback(() => {
+        setVisiblePosts((prevVisible) => {
+          return [
+            ...prevVisible,
+            ...Array.from({ length: 5 }).map((_, i) => {
+              const nextIndex = (prevVisible.length + i) % posts.length;
+              return posts[nextIndex];
+            }),
+          ];
+        });
+      
+        setPostIndex((prevIndex) => prevIndex + 5);
+      }, [posts]);
+  
+    useEffect(() => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            loadMore();
+          }
+        },
+        {
+          rootMargin: "200px",
+        }
+      );
+  
+      if (loaderRef.current) {
+        observer.observe(loaderRef.current);
+      }
+  
+      return () => {
+        if (loaderRef.current) {
+          observer.unobserve(loaderRef.current);
+        }
+      };
+    }, [loaderRef, loadMore]);
+  
+    return (
+      <main style={styles.feedContainer}>
+        {visiblePosts.map((post, idx) => (
+          <section key={`${post.id}-${idx}`} style={styles.postContainer}>
+            <div style={styles.card}>
+              <p style={styles.author}>@{post.author}</p>
+              <p style={styles.content}>{post.content}</p>
+              <p style={styles.date}>
+                {new Date(post.createdAt).toLocaleString()}
+              </p>
+            </div>
+          </section>
         ))}
-      </div>
-    </main>
-  );
+  
+        <div ref={loaderRef} style={{ height: "1px" }} />
+      </main>
+    );
+  }
+  
 
-}
+
