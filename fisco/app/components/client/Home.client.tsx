@@ -62,7 +62,7 @@ const styles = {
 };
 
 export default function ClientHome({ testData = [] }: Props) {
-    const [visiblePosts, setVisiblePosts] = useState<Post[]>(testData.slice(0, 5));
+    const [visiblePosts, setVisiblePosts] = useState<TestDataType[]>(testData.slice(0, 5));
     const [postIndex, setPostIndex] = useState(5);
     const loaderRef = useRef<HTMLDivElement | null>(null);
   
@@ -107,14 +107,13 @@ export default function ClientHome({ testData = [] }: Props) {
     return (
       <main style={styles.feedContainer}>
         {visiblePosts.map((post, idx) => (
-          <section key={`${post.id}-${idx}`} style={styles.postContainer}>
+          <section key={`${post.clerk_user_id}-${idx}`} style={styles.postContainer}>
             <div style={styles.card}>
-              <p style={styles.author}>@{post.author}</p>
-              {/* <img src={post.image} style={styles.image} />
-              <p style={styles.content}>{post.content}</p>
-              <p style={styles.date}>
-                {new Date(post.createdAt).toLocaleString()}
-              </p> */}
+              <p style={styles.author}>@{post.first_name} {post.last_name}</p>
+              <img src={post.image_url} style={styles.image} />
+              <p style={styles.date}> Created at <br />
+                 {new Date(post.created_at).toLocaleString()}
+              </p>
             </div>
           </section>
         ))}
