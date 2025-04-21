@@ -4,6 +4,6 @@ import { NextResponse } from "next/server";
 const sql = neon(process.env.DATABASE_URL!);
 
 export async function GET() {
-  const result = await sql`SELECT * FROM "test-table"`;
+  const result = await sql`SELECT * FROM "images"`;
   return NextResponse.json(result);
 }
