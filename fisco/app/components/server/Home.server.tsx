@@ -3,7 +3,8 @@ import { getHomeData} from "@/lib/getHomeData";
 import { Post } from "@/types/index";
 import "./styles.css"; // contains scroll snap styles
 
-const POSTS_PER_PAGE = 2;
+// constant to determine how manh posts are on the page, not implemented yet
+// const POSTS_PER_PAGE = 2;
 
 export default async function Home() {
     const { postData } = (await getHomeData() as { postData: Post[] });
@@ -35,7 +36,7 @@ function PostSection({ post }: { post: Post }) {
       <section className="post-snap">
         <div className="post-card">
               <p className="post-author">@{post.first_name ?? post.email ?? "Unknown Name"}</p>
-              <img src={`data:${mimeType};base64,${post.image_data}`} className="post-image" />
+              <img src={`data:${mimeType};base64,${post.image_data}`} alt="Fisco" className="post-image" />
               <p className="post-date">{new Date(post.created_at).toLocaleString()}</p>
               <p className="post-likes">Liked by: {post.likes}</p>
               <p className="post-comments">Comments: {post.comments}</p>

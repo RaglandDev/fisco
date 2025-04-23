@@ -1,8 +1,9 @@
 'use client';
 
+import { Post } from "@/types/index";
 import { ClerkProvider, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 
-export default function ClientHome({ testData }: { testData: any }) {
+export default function ClientHome({ postData }: { postData: Post }) {
   return (
     <div style={{ padding: '2rem' }}>
       <h1>Welcome to Fisco!</h1>
@@ -27,7 +28,7 @@ export default function ClientHome({ testData }: { testData: any }) {
       </SignedIn>
 
       {/* home page content */}
-      <pre>{JSON.stringify(testData, null, 2)}</pre>
+      <pre>{JSON.stringify(postData, null, 2)}</pre>
     </div>
   );
 }
