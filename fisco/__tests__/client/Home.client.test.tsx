@@ -13,12 +13,14 @@ vi.mock('@clerk/nextjs', () => ({
 
 describe("Home component", () => {
   it("renders list of test data", () => {
-    const testData = [
+    const postData = [
       { id: 1, name: "Test Item 1" },
       { id: 2, name: "Test Item 2" },
     ];
 
-    render(<ClientHome testData={testData} />);
+    
+
+    render(<ClientHome postData={postData} />);
 
     expect(screen.getByText(/"id": 1/)).toBeDefined();
     expect(screen.getByText(/"id": 2/)).toBeDefined();

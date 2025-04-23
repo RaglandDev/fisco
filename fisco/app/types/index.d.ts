@@ -8,8 +8,8 @@ export type Post = {
     likes: Array<number>;
     comments: Array<string>;
     image_data: string;
-    user_data: string;
-    first_name: string | "Unknown";
-    last_name: string | "Unknown";
+    user_data?: string;
+    first_name?: string | "Unknown";
+    last_name?: string | "Unknown";
     email?: string;
 };

@@ -1,9 +1,10 @@
 'use client';
 
-import { Post } from "@/types/index";
+// import { Post } from "@/types/index";
+import { TestDataType } from "@/types/Home.client";
 import { ClerkProvider, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 
-export default function ClientHome({ postData }: { postData: Post }) {
+export default function ClientHome({ postData }: { postData: TestDataType }) {
   return (
     <div style={{ padding: '2rem' }}>
       <h1>Welcome to Fisco!</h1>
