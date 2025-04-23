@@ -1,4 +1,5 @@
-'use client';
+"use client";
+import { TestDataType } from "@/types/Home.client";
 
 // import { Post } from "@/types/index";
 import { TestDataType } from "@/types/Home.client";
