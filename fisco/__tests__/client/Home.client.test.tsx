@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import ClientHome from "@/components/client/Home.client";
+import { vi, describe, it, expect } from "vitest";
 
-jest.mock('@clerk/nextjs', () => ({
+vi.mock('@clerk/nextjs', () => ({
   SignedIn: ({ children }) => <>{children}</>,
   SignedOut: ({ children }) => <>{children}</>,
   SignInButton: ({ children }) => <button>{children || "Sign In"}</button>,
@@ -19,8 +20,9 @@ describe("Home component", () => {
 
     render(<ClientHome testData={testData} />);
 
-    expect(screen.getByText("1")).toBeDefined()
-    expect(screen.getByText("2")).toBeDefined()
+    expect(screen.getByText(/"id": 1/)).toBeDefined();
+    expect(screen.getByText(/"id": 2/)).toBeDefined();
+
     // screen.debug() useful func
   });
 });

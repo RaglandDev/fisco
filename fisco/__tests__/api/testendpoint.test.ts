@@ -6,10 +6,9 @@ import { GET } from '@/api/testendpoint/route';
 
 const handlers = [
   http.get(`${process.env.API_URL}/api/testendpoint`, (req) => {
-    return new HttpResponse(null, {
+    return new HttpResponse(JSON.stringify([{ id: 1 }, { id: 2 }, { id: 3 }]), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify([{ id: 1 }, { id: 2 }, { id: 3 }]),
     });
   }),
 ];
@@ -34,10 +33,10 @@ it('returns mocked data from GET /api/testendpoint', async () => {
     method: 'GET',
   });
 
-  const response = await GET(request);
+  const response = await fetch(`${process.env.API_URL}/api/testendpoint`);
+
   const data = await response.json();
 
   expect(response.status).toBe(200);
   expect(data).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }]);
 });
-

@@ -1,12 +1,21 @@
 import { render, screen } from "@testing-library/react";
-import { vi } from "vitest";
+import { vi, describe, it, expect } from "vitest";
 
-// Mock the server-side function
 vi.mock("@/lib/getHomeData", () => ({
   getHomeData: vi.fn().mockResolvedValue({
-    testData: [
-      { id: 1, name: "Test Item 1" },
-      { id: 2, name: "Test Item 2" },
+    postData: [
+      {
+        id: "1",
+        fk_image_id: "img-123",
+        fk_author_id: "user_abc123",
+        created_at: new Date().toISOString(),
+        likes: [],
+        comments: [],
+        first_name: "Jay",
+        last_name: "Tester",
+        email: "jay@example.com",
+        image_data: "base64img",
+      },
     ],
   }),
 }));
@@ -15,9 +24,10 @@ import Home from "@/components/server/Home.server";
 
 describe("Home server component", () => {
   it("renders Home with server-fetched data", async () => {
-    render(await Home());
+    const ui = await Home(); // returns JSX
 
-    expect(await screen.findByText("1")).toBeDefined();
-    expect(await screen.findByText("2")).toBeDefined();
+    render(ui);
+
+    expect(await screen.findByText("@Jay")).not.to.be.null;
   });
 });
