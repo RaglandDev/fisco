@@ -7,7 +7,7 @@ const POSTS_PER_PAGE = 2;
 export default async function Home() {
     // Fetch all posts using getHomeData
     const { postData } = (await getHomeData() as { postData: Post[] });
-    console.log("Fetched postData:", postData.length); // Debugging
+    // console.log("Fetched postData:", postData.length); // Debugging
   
     return (
       <>
