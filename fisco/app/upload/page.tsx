@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 
 function UploadPage() {
     return (
+    
       <div>
-        {/* <Button variant="destructive">
+        {/* <Button variant="default">
           <span>New Post</span>
-        </Button>*/}
+        </Button> */}
         <ImageUpload /> 
       </div>
     );
