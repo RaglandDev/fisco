@@ -2,7 +2,6 @@
 
 export default function App() {
   return (
-    // <Home />
-    null
+    <Home />
     );
 }
