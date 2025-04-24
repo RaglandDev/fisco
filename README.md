@@ -81,3 +81,4 @@ This is where all of our types live. Global types are in ``types/index.d.ts`` an
 - ``npm run coverage``
 - ``npm run lint``
 - ``npm install -D <...>``
+.
