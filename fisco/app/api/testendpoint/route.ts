@@ -3,7 +3,14 @@ import { NextResponse } from "next/server";
 
 const sql = neon(process.env.DATABASE_URL!);
 
-export async function GET() {
+export async function GET(req: Request) {
+    const url = new URL(req.url);
+    const limit = parseInt(url.searchParams.get('limit') || '2'); 
+    const offset = parseInt(url.searchParams.get('offset') || '0'); 
+
+    console.log(`Fetching posts with limit ${limit} and offset ${offset}`);
+
+
     const result = await sql`
     SELECT 
       posts.*,
@@ -14,6 +21,7 @@ export async function GET() {
     FROM posts
     LEFT JOIN images ON posts.fk_image_id = images.id
     LEFT JOIN users ON posts.fk_author_id::text = users.clerk_user_id
+    LIMIT ${limit} OFFSET ${offset}
   `;
   return NextResponse.json(result);
 }

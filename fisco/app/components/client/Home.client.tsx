@@ -1,13 +1,43 @@
 'use client';
 
-// import { Post } from "@/types/index";
-import { TestDataType } from "@/types/Home.client";
-import { ClerkProvider, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { useEffect, useState } from 'react';
+import { useRouter} from 'next/navigation'; 
+import { Post } from "@/types/index";
 
-export default function ClientHome({ postData }: { postData: TestDataType }) {
+//import { ClerkProvider, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+
+const POSTS_PER_PAGE = 4;
+
+export default function ClientHome({ postData, offset }: { postData: Post[], offset: number }) {
+  const router = useRouter();
+  const [posts, setPosts] = useState(postData);
+  const [currentOffset, setCurrentOffset] = useState(offset);
+
+  // update url when user reaches bottom
+
+  useEffect(() => {
+    //detect based on feed scroll element 
+    const feedScrollElement = document.querySelector('.feed-scroll');
+  
+    // if not null
+    if (feedScrollElement) {
+      const handleScroll = async () => {
+        if ( feedScrollElement.scrollTop + feedScrollElement.clientHeight >= feedScrollElement.scrollHeight - 10 ) {
+          // Update the offset in the URL query to trigger the server to fetch more posts
+          const newOffset = currentOffset + POSTS_PER_PAGE;
+          router.push(`/?offset=${newOffset}`);
+          setCurrentOffset(newOffset);
+        }
+      };
+  
+      feedScrollElement.addEventListener("scroll", handleScroll);
+      return () => feedScrollElement.removeEventListener("scroll", handleScroll);
+    }
+  }, [currentOffset, router]);
+ 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1>Welcome to Fisco!</h1>
+      {/* <h1>Welcome to Fisco!</h1>
         <ClerkProvider>
             <SignedOut>
                 <div style={{ marginBottom: '1rem' }}>
@@ -26,10 +56,19 @@ export default function ClientHome({ postData }: { postData: TestDataType }) {
         <div style={{ marginBottom: '1rem' }}>
           <UserButton afterSignOutUrl="/" />
         </div>
-      </SignedIn>
+      </SignedIn> */}
 
       {/* home page content */}
-      <pre>{JSON.stringify(postData, null, 2)}</pre>
+      {/* <pre>{JSON.stringify(postData, null, 2)}</pre> */}
+      {/* Render posts */}
+    
+      {/* Render the list of posts */}
+      <main>
+        {posts.map((post) => (
+            <div key={post.id}>{post.first_name}</div>  //placeholder
+        ))}
+      </main>
+      
     </div>
   );
 }
