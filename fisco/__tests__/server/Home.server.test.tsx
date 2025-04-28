@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, act  } from "@testing-library/react";
 import { vi, describe, it, expect } from "vitest";
 
 vi.mock("@/lib/getHomeData", () => ({
@@ -25,9 +25,10 @@ import Home from "@/components/server/Home.server";
 describe("Home server component", () => {
   it("renders Home with server-fetched data", async () => {
     const props = { offset: 0 };
-    //const ui = await Home(); // returns JSX
-    const { container } = render(<Home {...props} />);
-
+    // Render and wait for async data to load
+    await waitFor(async () => {
+      render(<Home {...props} />);
+    });
     //render(ui);
 
     //names still not working
