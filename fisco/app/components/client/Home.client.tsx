@@ -12,28 +12,37 @@ export default function ClientHome({ postData, offset }: { postData: Post[], off
   const router = useRouter();
   const [posts, setPosts] = useState(postData);
   const [currentOffset, setCurrentOffset] = useState(offset);
+  const [totalPosts, setTotalPosts] = useState<number>(0);
+
+  // Fetch the total number of posts once
+  useEffect(() => {
+    const fetchTotalPosts = async () => {
+      const response = await fetch('/api/testendpoint?limit=1&offset=0');  
+      const data = await response.json();
+      setTotalPosts(data.totalCount);  // Set the total number of posts
+    };
+    fetchTotalPosts();
+  }, []);
 
   // update url when user reaches bottom
-
   useEffect(() => {
-    //detect based on feed scroll element 
     const feedScrollElement = document.querySelector('.feed-scroll');
   
-    // if not null
     if (feedScrollElement) {
       const handleScroll = async () => {
         if ( feedScrollElement.scrollTop + feedScrollElement.clientHeight >= feedScrollElement.scrollHeight - 10 ) {
-          // Update the offset in the URL query to trigger the server to fetch more posts
+          if (totalPosts < (currentOffset)) {
+            return;  //if less posts than offset + current post set, no more updates
+          }
           const newOffset = currentOffset + POSTS_PER_PAGE;
           router.push(`/?offset=${newOffset}`);
           setCurrentOffset(newOffset);
         }
       };
-  
       feedScrollElement.addEventListener("scroll", handleScroll);
       return () => feedScrollElement.removeEventListener("scroll", handleScroll);
     }
-  }, [currentOffset, router]);
+  }, [currentOffset, router, posts]);
  
   return (
     <div style={{ padding: '2rem' }}>

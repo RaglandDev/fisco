@@ -12,19 +12,14 @@ interface HomeProps {
     offset: number;
 }
 
-
 export async function fetchPosts(offset: number) {
     const postData = (await getHomeData(offset + POSTS_PER_PAGE, 0) as { postData: Post[] });  // Fetch posts from your API or DB
-    console.log('postdata from offset', offset, ':', postData);
+    // console.log('postdata from offset', offset, ':', postData);
     return postData;
 }
 
-
-
 export default async function Home({ offset }: HomeProps) {
-
     const {postData} = await fetchPosts(offset);
-
     return (
         <>
         {/* <SignedOut>

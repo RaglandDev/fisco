@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     console.log(`Fetching posts with limit ${limit} and offset ${offset}`);
 
 
-    const result = await sql`
+    const posts = await sql`
     SELECT 
       posts.*,
       encode(images.data, 'base64') AS image_data,
@@ -23,5 +23,14 @@ export async function GET(req: Request) {
     LEFT JOIN users ON posts.fk_author_id::text = users.clerk_user_id
     LIMIT ${limit} OFFSET ${offset}
   `;
-  return NextResponse.json(result);
+
+  const totalCount = await sql`
+    SELECT COUNT(*) AS total FROM posts
+  `;
+
+  
+  return NextResponse.json({
+    posts,        // The list of posts based on the limit and offset
+    totalCount: totalCount[0].total // The total number of posts in the database
+  });
 }
