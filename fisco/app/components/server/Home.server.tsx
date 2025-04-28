@@ -1,6 +1,7 @@
 //import {SignedOut, SignInButton, SignUpButton, SignedIn, UserButton } from "@clerk/nextjs"
 import { getHomeData} from "@/lib/getHomeData";
 import { Post } from "@/types/index";
+import { auth } from "@clerk/nextjs/server";
 import "./styles.css"; // contains scroll snap styles
 
 // constant to determine how manh posts are on the page, not implemented yet

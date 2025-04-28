@@ -1,4 +1,5 @@
 import { ClerkProvider } from "@clerk/nextjs";
+import './global.css'
 
 export default function RootLayout({
   children,
