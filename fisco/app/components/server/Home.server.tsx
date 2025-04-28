@@ -2,12 +2,23 @@
 import { getHomeData} from "@/lib/getHomeData";
 import { Post } from "@/types/index";
 import "./styles.css"; // contains scroll snap styles
+import ClientHome from "../client/Home.client";
 
-// constant to determine how manh posts are on the page, not implemented yet
-// const POSTS_PER_PAGE = 2;
+const POSTS_PER_PAGE = 4;  // move to globals?
 
-export default async function Home() {
-    const { postData } = (await getHomeData() as { postData: Post[] });
+// app/components/server/Home.server.tsx
+interface HomeProps {
+    offset: number;
+}
+
+export async function fetchPosts(offset: number) {
+    const postData = (await getHomeData(offset + POSTS_PER_PAGE, 0) as { postData: Post[] });  // Fetch posts from your API or DB
+    // console.log('postdata from offset', offset, ':', postData);
+    return postData;
+}
+
+export default async function Home({ offset }: HomeProps) {
+    const {postData} = await fetchPosts(offset);
 
     return (
         <>
@@ -20,11 +31,17 @@ export default async function Home() {
             <UserButton />
         </SignedIn>*/}
         <main className="feed-scroll">
-            {/* Render visible posts */}
-            {postData.map((post) => (
-            <PostSection key={post.id} post={post} />
-            ))}
-        </main>
+            {/* Render posts using PostSection */}
+            {postData.length > 0 ? (
+                postData.map((post) => (
+                    <PostSection key={post.id} post={post} />
+                ))
+            ) : (
+                <p>No posts available</p>
+            )}
+        </main>        
+
+        <ClientHome postData={postData} offset={offset} /> 
         </>
     );
 }
