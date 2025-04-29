@@ -5,15 +5,18 @@ import Image from "next/image"
 import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft } from "lucide-react"
 import {Post} from "@/types"
 
-const POSTS_PER_PAGE = 4;
+const POSTS_PER_PAGE = 5;
 
 export default function Feed({ postData, offset }: { postData: Post[], offset: number }) {
   const [posts, setPosts] = useState<Post[]>(postData);
   const [showUploadPage, setShowUploadPage] = useState(false)
+
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
+
   const [swipeTransition, setSwipeTransition] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
+
   const [currentPostIndex, setCurrentPostIndex] = useState(0); // how deep into the feed you are
 
 
@@ -40,10 +43,12 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
 };
 
   useEffect(() => {
-  if (currentPostIndex === posts.length - 2) { // loads posts in advance (instead of at the bottom)
+  if (currentPostIndex === posts.length - 4) { // loads posts in advance (instead of at the bottom)
     fetchMorePosts();
   }
 }, [currentPostIndex]);
+
+
 
 
   // Minimum swipe distance required (in px)
@@ -70,6 +75,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
         setSwipeTransition(transitionPercentage)
       }
     }
+
   }
 
   const onTouchEnd = () => {
