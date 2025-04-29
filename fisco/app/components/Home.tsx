@@ -2,7 +2,7 @@ import { getHomeData } from "@/lib/getHomeData";
 import { Post } from "@/types/index";
 import Feed from "@/components/Feed.client";
 
-const POSTS_PER_PAGE = 4
+const POSTS_PER_PAGE = 5
 
 interface HomeProps {
     offset: number;
