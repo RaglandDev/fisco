@@ -13,7 +13,10 @@
   "dependencies": {
     "@clerk/nextjs": "^6.14.2",
     "@neondatabase/serverless": "^1.0.0",
+    "@radix-ui/react-slot": "^1.2.0",
     "autoprefixer": "^10.4.21",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "dotenv": "^16.4.7",
     "lucide-react": "^0.503.0",
     "next": "15.3.0",
