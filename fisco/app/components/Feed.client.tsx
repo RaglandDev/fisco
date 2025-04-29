@@ -1,5 +1,6 @@
 "use client"
 
+import ImageUpload, { ImageUploadHandle } from "@/components/ImageUpload.client"
 import { useState, useRef, useEffect, type TouchEvent } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft } from "lucide-react"
@@ -101,8 +102,31 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
     setTouchEnd(null)
   }
 
+  // Reference to the ImageUpload component
+  const imageUploadRef = useRef<ImageUploadHandle>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  
+  // Handler for upload button click
   const handleUpload = () => {
-    alert("Upload functionality would be implemented here")
+    // Call the file selection trigger in ImageUpload component
+    if (imageUploadRef.current) {
+      imageUploadRef.current.triggerFileSelect();
+    }
+  }
+  
+  // Handler for when upload completes successfully
+  const handleUploadComplete = (imageUrl: string) => {
+    // Could add logic to add the newly uploaded image to the feed
+    setUploadError(null);
+    setShowUploadPage(false); // Return to feed after successful upload
+    
+    // Optionally refresh posts
+    fetchMorePosts();
+  }
+  
+  // Handler for upload errors
+  const handleUploadError = (error: string) => {
+    setUploadError(error);
   }
 
   const goBackToFeed = () => {
@@ -203,6 +227,16 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
             <button onClick={handleUpload} className="bg-white text-black font-medium rounded-full px-8 py-3">
               Upload
             </button>
+            {uploadError && <p className="text-red-500 mt-4">{uploadError}</p>}
+            
+            {/* Hidden ImageUpload component - only handles file selection and upload */}
+            <div style={{ display: 'none' }}>
+              <ImageUpload 
+                ref={imageUploadRef}
+                onUploadComplete={handleUploadComplete}
+                onUploadError={handleUploadError}
+              />
+            </div>
           </div>
         </div>
       </div>
