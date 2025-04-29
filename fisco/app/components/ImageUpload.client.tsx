@@ -46,11 +46,13 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>((props, ref)
       if (onUploadComplete) {
         onUploadComplete(data.url);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Upload error:", error);
-      const errorMessage = error.message || "Failed to upload image";
+      let errorMessage = "Failed to upload image";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       setError(errorMessage);
-      
       // Call the error callback
       if (onUploadError) {
         onUploadError(errorMessage);

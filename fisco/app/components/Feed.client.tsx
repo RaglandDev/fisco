@@ -47,7 +47,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   if (currentPostIndex === posts.length - 4) { // loads posts in advance (instead of at the bottom)
     fetchMorePosts();
   }
-}, [currentPostIndex]);
+}, [fetchMorePosts, posts.length, currentPostIndex]);
 
 
 
@@ -115,7 +115,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   }
   
   // Handler for when upload completes successfully
-  const handleUploadComplete = (imageUrl: string) => {
+  const handleUploadComplete = (_imageUrl: string) => {
     // Could add logic to add the newly uploaded image to the feed
     setUploadError(null);
     setShowUploadPage(false); // Return to feed after successful upload
