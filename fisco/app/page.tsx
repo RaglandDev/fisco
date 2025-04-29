@@ -1,4 +1,4 @@
-import Home from '@/components/server/Home.server';
+import Home from '@/components/Home';
 
 export default async function App({ searchParams }: { searchParams: Promise<{ offset?: string }> }) {
   const { offset } = await searchParams;

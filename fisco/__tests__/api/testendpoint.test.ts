@@ -3,9 +3,8 @@ import { setupServer } from 'msw/node';
 import { beforeAll, afterEach, afterAll, it, expect } from 'vitest';
 import { GET } from '@/api/testendpoint/route'; 
 
-//
 const handlers = [
-  http.get(`${process.env.API_URL}/api/testendpoint`, (req) => {
+  http.get(`${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint`, (req) => {
     return new HttpResponse(JSON.stringify([{ id: 1 }, { id: 2 }, { id: 3 }]), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -29,11 +28,11 @@ afterEach(() => {
 afterAll(() => server.close());
 
 it('returns mocked data from GET /api/testendpoint', async () => {
-  const request = new Request(`${process.env.API_URL}/api/testendpoint`, {
+  const request = new Request(`${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint`, {
     method: 'GET',
   });
 
-  const response = await fetch(`${process.env.API_URL}/api/testendpoint`);
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint`);
 
   const data = await response.json();
 

@@ -1,6 +1,6 @@
 import { getHomeData } from "@/lib/getHomeData";
 import { Post } from "@/types/index";
-import Feed from "@/components/client/Feed.client";
+import Feed from "@/components/Feed.client";
 
 const POSTS_PER_PAGE = 4
 
@@ -18,7 +18,7 @@ export default async function Home({ offset }: HomeProps) {
 
     return (
         <main className="h-[100dvh] bg-gray-900 flex justify-center items-center overflow-hidden">
-            <Feed postData={postData} />
+            <Feed postData={postData} offset={offset}/>
         </main>
     );
 }

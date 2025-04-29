@@ -2,7 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { syncUser } from "@/actions/user.action";
 
 export async function getHomeData(limit: number = 2, offset: number = 0) {
-  const res = await fetch(`${process.env.API_URL}/api/testendpoint?limit=${limit}&offset=${offset}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint?limit=${limit}&offset=${offset}`, {
        cache: "no-store",
     });
     const data = await res.json();

@@ -1,18 +1,50 @@
 "use client"
 
-import { useState, useRef, type TouchEvent } from "react"
+import { useState, useRef, useEffect, type TouchEvent } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft } from "lucide-react"
-
 import {Post} from "@/types"
 
+const POSTS_PER_PAGE = 4;
 
-export default function Feed({ postData }: { postData: Post[] }) {
+export default function Feed({ postData, offset }: { postData: Post[], offset: number }) {
+  const [posts, setPosts] = useState<Post[]>(postData);
   const [showUploadPage, setShowUploadPage] = useState(false)
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const [swipeTransition, setSwipeTransition] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [currentPostIndex, setCurrentPostIndex] = useState(0); // how deep into the feed you are
+
+
+  const fetchMorePosts = async () => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint?limit=${POSTS_PER_PAGE}&offset=${offset + posts.length}`);
+    const data = await res.json();
+    const newPosts: Post[] = data.posts;
+    if (newPosts) {
+      setPosts(prev => [...prev, ...newPosts]);
+    }
+  } catch (error) {
+    console.error('Failed to fetch more posts', error);
+  }
+};
+
+  const handleScroll = () => {
+  if (containerRef.current) {
+    const scrollTop = containerRef.current.scrollTop;
+    const containerHeight = containerRef.current.clientHeight;
+    const newIndex = Math.round(scrollTop / containerHeight);
+    setCurrentPostIndex(newIndex);
+  }
+};
+
+  useEffect(() => {
+  if (currentPostIndex === posts.length - 2) { // loads posts in advance (instead of at the bottom)
+    fetchMorePosts();
+  }
+}, [currentPostIndex]);
+
 
   // Minimum swipe distance required (in px)
   const minSwipeDistance = 30
@@ -88,8 +120,9 @@ export default function Feed({ postData }: { postData: Post[] }) {
             ref={containerRef}
             className="h-full w-full overflow-y-auto snap-y snap-mandatory"
             style={{ scrollbarWidth: "none" }}
+            onScroll={handleScroll}
           >
-            {postData.map((post, index) => (
+            {posts.map((post, index) => (
               <div key={post.id} className="relative h-full w-full snap-start snap-always">
                 <div className="absolute inset-0">
                   <Image

@@ -21,12 +21,7 @@ export async function GET(req: Request) {
     LIMIT ${limit} OFFSET ${offset}
   `;
 
-  const totalCount = await sql`
-    SELECT COUNT(*) AS total FROM posts
-  `;
-
   return NextResponse.json({
     posts,        // The list of posts based on the limit and offset
-    totalCount: totalCount[0].total // The total number of posts in the database
   });
 }

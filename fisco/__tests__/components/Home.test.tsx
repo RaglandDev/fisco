@@ -20,7 +20,7 @@ vi.mock("@/lib/getHomeData", () => ({
   }),
 }));
 
-import Home from "@/components/server/Home.server";
+import Home from "@/components/Home";
 
 describe("Home server component", () => {
   it("renders Home with server-fetched data", async () => {

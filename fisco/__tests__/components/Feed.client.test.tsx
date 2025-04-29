@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import ClientHome from '@/components/client/Home.client';
 import { vi, it, expect } from 'vitest';
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { useRouter } from 'next/navigation';
+import Feed from '@/components/Feed.client'
 
 // Mock the useRouter hook from Next.js
 vi.mock('next/navigation', () => ({
@@ -16,7 +16,7 @@ vi.mock('next/navigation', () => ({
 
 // Set up mock response handler
 const handlers = [
-  http.get(`${process.env.API_URL}/api/testendpoint`, (req) => {
+  http.get(`${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint`, (req) => {
     return new HttpResponse(
       JSON.stringify([
         { id: '1', fk_image_id: 'img-123', image_data: 'base64img', first_name: 'Test Item 1' },
@@ -39,10 +39,9 @@ it('renders a list of posts', async () => {
     { id: '2', image_data: 'base64img', first_name: 'Test Item 2' },
   ];
 
-  console.log(`${process.env.API_URL}`)
+  console.log(`${process.env.NEXT_PUBLIC_API_URL}`)
 
-  render(<ClientHome postData={postData} offset={0} />);
+  render(<Feed postData={postData} offset={0} />);
 
-  await waitFor(() => expect(screen.getByText('Test Item 1')).toBeDefined());
-  expect(screen.getByText('Test Item 2')).toBeDefined();
+  await waitFor(() => expect(screen.getAllByRole('img').length).toEqual(2));
 });
