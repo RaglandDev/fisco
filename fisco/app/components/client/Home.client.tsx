@@ -10,11 +10,11 @@ const POSTS_PER_PAGE = 4;
 
 export default function ClientHome({ postData, offset }: { postData: Post[], offset: number }) {
   const router = useRouter();
-  const [posts, setPosts] = useState(postData);
+  const [posts, _setPosts] = useState(postData)
   const [currentOffset, setCurrentOffset] = useState(offset);
   const [totalPosts, setTotalPosts] = useState<number>(0);
 
-  // Fetch the total number of posts once
+  // Fetch the total number of posts once 
   useEffect(() => {
     const fetchTotalPosts = async () => {
       const response = await fetch('/api/testendpoint?limit=1&offset=0');  
@@ -22,7 +22,7 @@ export default function ClientHome({ postData, offset }: { postData: Post[], off
       setTotalPosts(data.totalCount);  // Set the total number of posts
     };
     fetchTotalPosts();
-  }, []);
+  });
 
   // update url when user reaches bottom
   useEffect(() => {
