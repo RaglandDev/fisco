@@ -17,7 +17,7 @@ export default function ClientHome({ postData, offset }: { postData: Post[], off
   // Fetch the total number of posts once 
   useEffect(() => {
     const fetchTotalPosts = async () => {
-      const response = await fetch('/api/testendpoint?limit=1&offset=0');  
+      const response = await fetch(`${process.env.API_URL}/api/testendpoint?limit=1&offset=0`);  
       const data = await response.json();
       setTotalPosts(data.totalCount);  // Set the total number of posts
     };
