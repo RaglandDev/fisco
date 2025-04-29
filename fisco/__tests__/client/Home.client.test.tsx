@@ -16,7 +16,7 @@ vi.mock('next/navigation', () => ({
 
 // Set up mock response handler
 const handlers = [
-  http.get(`${process.env.API_URL}/api/testendpoint?limit=1&offset=0`, (req) => {
+  http.get(`${process.env.API_URL}/api/testendpoint`, (req) => {
     return new HttpResponse(
       JSON.stringify([
         { id: '1', fk_image_id: 'img-123', image_data: 'base64img', first_name: 'Test Item 1' },
@@ -38,6 +38,8 @@ it('renders a list of posts', async () => {
     { id: '1', image_data: 'base64img', first_name: 'Test Item 1' },
     { id: '2', image_data: 'base64img', first_name: 'Test Item 2' },
   ];
+
+  console.log(`${process.env.API_URL}`)
 
   render(<ClientHome postData={postData} offset={0} />);
 
