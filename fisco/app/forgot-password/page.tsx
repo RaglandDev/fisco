@@ -23,7 +23,7 @@ export default function ForgotPasswordPage() {
         identifier: email,
       });
       setSent(true);
-    } catch (err: any) {
+    } catch (_err: unknown) {
       setError("Failed to send reset email.");
     }
   }
@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
         await setClientActive({ session: result.createdSessionId });
         window.location.replace("/");
       }
-    } catch (err: any) {
+    } catch (_err: unknown) {
       setError("Password reset failed.");
     }
   }

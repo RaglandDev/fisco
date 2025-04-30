@@ -17,8 +17,8 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false); // true while submitting email/password
-  const [oauthLoading, setOauthLoading] = useState<"google" | "apple" | null>(null); // true while OAuth login
+  const [loading, setLoading] = useState(false); 
+  const [oauthLoading, setOauthLoading] = useState<"google" | null>(null); 
 
   useEffect(() => {
     if (isSignedIn) {
@@ -53,18 +53,18 @@ export function LoginForm({
     }
   }
 
-  async function handleOAuth(provider: "oauth_google" | "oauth_apple") {
+  async function handleGoogleOAuth() {
     if (!isLoaded || !signIn) return;
-
-    setOauthLoading(provider === "oauth_google" ? "google" : "apple");
-
+  
+    setOauthLoading("google");
+  
     try {
       await signIn.authenticateWithRedirect({
-        strategy: provider,
+        strategy: "oauth_google",
         redirectUrl: "/",
-      });
-    } catch (err) {
-      console.error(err);
+      } as const); 
+    } catch (_err: unknown) {
+      console.error(_err);
       setError("OAuth login failed.");
       setOauthLoading(null);
     }
@@ -75,31 +75,21 @@ export function LoginForm({
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>Login with your Apple or Google account</CardDescription>
+          <CardDescription>Login with your Google account</CardDescription>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="grid gap-6">
 
-              {/* OAuth Buttons */}
+              {/* Google OAuth Button */}
               <div className="flex flex-col gap-4">
                 <Button
                   variant="outline"
                   className="w-full"
                   type="button"
                   disabled={oauthLoading !== null || loading}
-                  onClick={() => handleOAuth("oauth_apple")}
-                >
-                  {oauthLoading === "apple" ? "Redirecting..." : "Login with Apple"}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  type="button"
-                  disabled={oauthLoading !== null || loading}
-                  onClick={() => handleOAuth("oauth_google")}
+                  onClick={handleGoogleOAuth}
                 >
                   {oauthLoading === "google" ? "Redirecting..." : "Login with Google"}
                 </Button>
