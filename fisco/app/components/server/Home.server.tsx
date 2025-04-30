@@ -1,41 +1,26 @@
-import { auth } from "@clerk/nextjs/server";
 import { getHomeData } from "@/lib/getHomeData";
 import { Post } from "@/types/index";
-import LoginPage from "@/login/page";
-import { LogoutButton } from "@/components/logout-form";
-import Link from "next/link";
+import ClientHeader from "@/components/ClientHeader";
 import "./styles.css"; // contains scroll snap styles
 
-// constant to determine how manh posts are on the page, not implemented yet
+// constant to determine how many posts are on the page, not implemented yet
 // const POSTS_PER_PAGE = 2;
 
 export default async function Home() {
-    const { userId } = auth();
-    const { postData } = (await getHomeData() as { postData: Post[] });
+  const { postData } = (await getHomeData() as { postData: Post[] });
 
-    return (
-        <>
-      <header className="flex justify-end p-4">
-        {!userId ? (
-          <Link
-            href="/login"
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:opacity-90 transition"
-          >
-            Login
-          </Link>
-        ) : (
-          <LogoutButton />
-        )}
-      </header>
+  return (
+    <>
+      {/* Always render the client-side header */}
+      <ClientHeader />
 
-            <main className="feed-scroll">
-                {/* Render visible posts */}
-                {postData.map((post) => (
-                    <PostSection key={post.id} post={post} />
-                ))}
-            </main>
-        </>
-    );
+      <main className="feed-scroll">
+        {postData.map((post) => (
+          <PostSection key={post.id} post={post} />
+        ))}
+      </main>
+    </>
+  );
 }
 
 // Server-rendered post section hmm
