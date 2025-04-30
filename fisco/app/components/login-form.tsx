@@ -17,8 +17,8 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false); 
-  const [oauthLoading, setOauthLoading] = useState<"google" | null>(null); 
+  const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<"google" | null>(null);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -46,23 +46,28 @@ export function LoginForm({
       } else {
         console.log("Additional steps required", result);
       }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.errors?.[0]?.longMessage || "Login failed.");
+    } catch (_err: unknown) {
+      console.error(_err);
+      if (_err && typeof _err === "object" && "errors" in _err) {
+        const typed = _err as { errors?: { longMessage?: string }[] };
+        setError(typed.errors?.[0]?.longMessage || "Login failed.");
+      } else {
+        setError("Login failed.");
+      }
       setLoading(false);
     }
   }
 
   async function handleGoogleOAuth() {
     if (!isLoaded || !signIn) return;
-  
+
     setOauthLoading("google");
-  
+
     try {
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: "/",
-      } as const); 
+      } as Parameters<typeof signIn.authenticateWithRedirect>[0]);
     } catch (_err: unknown) {
       console.error(_err);
       setError("OAuth login failed.");
