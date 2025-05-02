@@ -86,7 +86,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
     const isLeftSwipe = distance < 0
     const isRightSwipe = distance > 0
 
-    // Detect right swipe on feed page
+    // Detect right swipe on feed page 
     if (isRightSwipe && !showUploadPage && Math.abs(distance) > minSwipeDistance) {
       setShowUploadPage(true)
     }
@@ -193,12 +193,12 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                       <Heart
                         className={`w-7 h-7 text-white`}
                       />
-                      <span className="text-white text-xs">0</span>
+                      <span className="text-white text-xs">{post.likes.length}</span>
                     </button>
 
                     <button onClick={() => {}} className="flex flex-col items-center">
                       <MessageCircle className="w-7 h-7 text-white" />
-                      <span className="text-white text-xs">0</span>
+                      <span className="text-white text-xs">{post.comments.length}</span>
                     </button>
 
                     <button onClick={() => {}} className="flex flex-col items-center">
