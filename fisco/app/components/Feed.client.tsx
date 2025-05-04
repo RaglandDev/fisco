@@ -2,6 +2,7 @@
 
 import ImageUpload, { ImageUploadHandle } from "@/components/ImageUpload.client"
 import { useState, useRef, useEffect, type TouchEvent } from "react"
+import CommentDrawer from "@/components/CommentDrawer"
 import Image from "next/image"
 import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft } from "lucide-react"
 import {Post} from "@/types"
@@ -9,6 +10,7 @@ import {Post} from "@/types"
 const POSTS_PER_PAGE = 5;
 
 export default function Feed({ postData, offset }: { postData: Post[], offset: number }) {
+  const [isCommentDrawerOpen, setIsCommentDrawerOpen] = useState(false);
   const [posts, setPosts] = useState<Post[]>(postData);
   const [showUploadPage, setShowUploadPage] = useState(false)
 
@@ -196,10 +198,11 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                       <span className="text-white text-xs">0</span>
                     </button>
 
-                    <button onClick={() => {}} className="flex flex-col items-center">
-                      <MessageCircle className="w-7 h-7 text-white" />
-                      <span className="text-white text-xs">0</span>
-                    </button>
+                    <button onClick={() => setIsCommentDrawerOpen(true)} className="flex flex-col items-center">
+  <MessageCircle className="w-7 h-7 text-white" />
+  <span className="text-white text-xs">0</span>
+</button>
+<CommentDrawer open={isCommentDrawerOpen} onOpenChange={setIsCommentDrawerOpen} />
 
                     <button onClick={() => {}} className="flex flex-col items-center">
                       <Share2 className="w-7 h-7 text-white" />
