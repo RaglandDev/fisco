@@ -18,7 +18,7 @@ export default function CustomSignUpPage() {
     if (!isLoaded || !signUp) return;
 
     try {
-      await signUp.create({ emailAddress: email, password });
+      await signUp.create({ emailAddress: email, password: password });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setPendingVerification(true);
     } catch (_err: unknown) {
@@ -41,7 +41,8 @@ export default function CustomSignUpPage() {
         await setClientActive({ session: result.createdSessionId });
         window.location.replace("/");
       }
-    } catch (_err: unknown) {
+    } catch (err: unknown) {
+      console.log(err)
       setError("Verification failed.");
     }
   }
