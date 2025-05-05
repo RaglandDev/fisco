@@ -18,7 +18,7 @@ export default function CustomSignUpPage() {
     if (!isLoaded || !signUp) return;
 
     try {
-      await signUp.create({ email, password });
+      await signUp.create({ emailAddress: email, password: password });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       console.log(email, password)
       setPendingVerification(true);
