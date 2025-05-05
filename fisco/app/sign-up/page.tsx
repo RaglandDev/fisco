@@ -41,7 +41,8 @@ export default function CustomSignUpPage() {
         await setClientActive({ session: result.createdSessionId });
         window.location.replace("/");
       }
-    } catch (_err: unknown) {
+    } catch (err: unknown) {
+      console.log(err)
       setError("Verification failed.");
     }
   }
