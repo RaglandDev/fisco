@@ -35,17 +35,15 @@ export default function CustomSignUpPage() {
     e.preventDefault();
     if (!signUp) return;
 
-    let result
     try {
-      result = await signUp.attemptEmailAddressVerification({ code });
+      console.log(code)
+      const result = await signUp.attemptEmailAddressVerification({ code });
       if (result.status === "complete") {
         await setClientActive({ session: result.createdSessionId });
         window.location.replace("/");
       }
     } catch (err: unknown) {
       console.log(err)
-      console.log(result)
-      console.log(result.status)
       setError("Verification failed.");
     }
   }
