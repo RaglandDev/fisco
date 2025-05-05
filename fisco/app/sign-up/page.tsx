@@ -18,8 +18,9 @@ export default function CustomSignUpPage() {
     if (!isLoaded || !signUp) return;
 
     try {
-      await signUp.create({ emailAddress: email, password });
+      await signUp.create({ email, password });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      console.log(email, password)
       setPendingVerification(true);
     } catch (_err: unknown) {
       if (typeof _err === "object" && _err && "errors" in _err) {
@@ -36,7 +37,6 @@ export default function CustomSignUpPage() {
     if (!signUp) return;
 
     try {
-      console.log(code)
       const result = await signUp.attemptEmailAddressVerification({ code });
       if (result.status === "complete") {
         await setClientActive({ session: result.createdSessionId });
