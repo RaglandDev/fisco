@@ -2,6 +2,7 @@ import { getHomeData } from "@/lib/getHomeData";
 import { Post } from "@/types/index";
 import Feed from "@/components/Feed.client";
 import ClientHeader from "@/components/ClientHeader";
+import BottomNavBar from "@/components/BottomBar";
 
 const POSTS_PER_PAGE = 5
 
@@ -23,6 +24,7 @@ export default async function Home({ offset }: HomeProps) {
           <main className="h-[100dvh] bg-gray-900 flex justify-center items-center overflow-hidden">
             <Feed postData={postData} offset={offset} />
           </main>
+          <BottomNavBar /> 
         </>
       );
     }
