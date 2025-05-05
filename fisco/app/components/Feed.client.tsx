@@ -82,7 +82,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return
 
-    const distance = touchStart - touchEnd
+    const distance = touchStart - touchEnd 
     const isLeftSwipe = distance < 0
     const isRightSwipe = distance > 0
 
@@ -133,6 +133,10 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
     setShowUploadPage(false)
   }
 
+  const handleLike = async() => {
+    const user = await currentUser();
+  }
+
   return (
     <div
       className="w-[100dvw] h-[100dvh] md:w-[100dwh] md:h-[100dvh] md:my-4 md:rounded-xl overflow-hidden bg-black shadow-2xl relative"
@@ -175,9 +179,9 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                       <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
                         <User className="w-5 h-5 text-gray-600" />
                       </div>
-                      <span className="font-semibold">@Author</span>
+                      <span className="font-semibold">@{post.first_name} {post.last_name}</span>
                     </div>
-                    <p className="text-sm">Caption</p>
+                    <p className="text-sm">I created this post at {post.created_at.toLocaleString()}!</p>
                   </div>
 
                   {/* Action buttons */}
