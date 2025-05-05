@@ -4,6 +4,9 @@ import ImageUpload, { ImageUploadHandle } from "@/components/ImageUpload.client"
 import { useState, useRef, useEffect, type TouchEvent } from "react"
 import CommentDrawer from "@/components/CommentDrawer"
 import Image from "next/image"
+import { useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
+import { LoginForm } from "@/components/login-form";
 import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft } from "lucide-react"
 import {Post} from "@/types"
 
@@ -13,6 +16,9 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   const [isCommentDrawerOpen, setIsCommentDrawerOpen] = useState(false);
   const [posts, setPosts] = useState<Post[]>(postData);
   const [showUploadPage, setShowUploadPage] = useState(false)
+  // Lock for liking posts
+  const [likeInProgress, setLikeInProgress] = useState<string | null>(null);
+
 
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
@@ -21,7 +27,8 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   const containerRef = useRef<HTMLDivElement>(null)
 
   const [currentPostIndex, setCurrentPostIndex] = useState(0); // how deep into the feed you are
-
+  
+  const router = useRouter();
 
   const fetchMorePosts = async () => {
   try {
@@ -84,11 +91,11 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return
 
-    const distance = touchStart - touchEnd
+    const distance = touchStart - touchEnd 
     const isLeftSwipe = distance < 0
     const isRightSwipe = distance > 0
 
-    // Detect right swipe on feed page
+    // Detect right swipe on feed page 
     if (isRightSwipe && !showUploadPage && Math.abs(distance) > minSwipeDistance) {
       setShowUploadPage(true)
     }
@@ -135,6 +142,74 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
     setShowUploadPage(false)
   }
 
+  const { user } = useUser();
+  const handleLike = async (post_id: string) => {
+    // If user is not signed in
+    if (!user){
+        alert("Please sign in to like posts!");
+        return;
+    }
+    // Prohibits the user from liking the same post multiple times
+    if (likeInProgress === post_id) {
+        return;
+    }
+    
+    // Lock so there's only a single request
+    setLikeInProgress(post_id);
+
+    const userId = user.id;
+    const post = posts.find((p) => p.id === post_id);
+    if (!post) {
+        setLikeInProgress(null);
+        return;
+    }
+
+    const hasLiked = post.likes.includes(user?.id);
+
+    // Make an API call to update the likes array for the post
+    try {
+        // Determines whether to like/remove like from the post
+        await fetch(`/api/testendpoint`, {
+        method: hasLiked ? 'DELETE' : 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ post_id, userId }), // send ID in body, not path
+        });
+        
+
+        // Update the likes array for the specific post in the client-side state
+        setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+            if (post.id === post_id) {
+            if (hasLiked) {
+                // Remove the user ID from the likes array
+                return {
+                ...post,
+                likes: post.likes.filter((id) => id !== userId),
+                };
+            } else {
+                // Add the user ID to the likes array
+                return {
+                ...post,
+                likes: [...post.likes, userId],
+                };
+            }
+            } else {
+            // Return the post unchanged
+            return post;
+            }
+        })
+        );
+    }
+    catch (error) {
+        console.error("Error liking post:", error);
+    } finally {
+        // Unlock
+        setLikeInProgress(null);
+    }
+  };
+
   return (
     <div
       className="w-[100dvw] h-[100dvh] md:w-[100dwh] md:h-[100dvh] md:my-4 md:rounded-xl overflow-hidden bg-black shadow-2xl relative"
@@ -177,9 +252,9 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                       <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
                         <User className="w-5 h-5 text-gray-600" />
                       </div>
-                      <span className="font-semibold">@Author</span>
+                      <span className="font-semibold">@{post.first_name} {post.last_name}</span>
                     </div>
-                    <p className="text-sm">Caption</p>
+                    <p className="text-sm">I created this post at {post.created_at.toLocaleString()}!</p>
                   </div>
 
                   {/* Action buttons */}
@@ -191,18 +266,28 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                       >
                         <Upload className="w-7 h-7 text-white" />
                     </button>
-                    <button onClick={() => {}} className="flex flex-col items-center">
-                      <Heart
-                        className={`w-7 h-7 text-white`}
-                      />
-                      <span className="text-white text-xs">0</span>
+                    <button onClick={() =>{
+                        if (user){
+                            handleLike(post.id)
+                        }
+                        else {
+                            router.push("/login")
+                        }
+                        }}
+                        className="flex flex-col items-center"
+                    >
+                        <Heart
+                            className={`w-7 h-7 transition-colors duration-200 ease-in-out  ${
+                            user?.id && post.likes.includes(user.id) ? "text-red-500 fill-red-500" : "text-white"
+                            }`}
+                        />
+                      <span className="text-white text-xs">{post.likes.length}</span>
                     </button>
-
                     <button onClick={() => setIsCommentDrawerOpen(true)} className="flex flex-col items-center">
-  <MessageCircle className="w-7 h-7 text-white" />
-  <span className="text-white text-xs">0</span>
-</button>
-<CommentDrawer open={isCommentDrawerOpen} onOpenChange={setIsCommentDrawerOpen} />
+                      <MessageCircle className="w-7 h-7 text-white" />
+                      <span className="text-white text-xs">{post.comments.length}</span>
+                    </button>
+                    <CommentDrawer open={isCommentDrawerOpen} onOpenChange={setIsCommentDrawerOpen} />
 
                     <button onClick={() => {}} className="flex flex-col items-center">
                       <Share2 className="w-7 h-7 text-white" />
