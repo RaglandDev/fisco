@@ -6,7 +6,6 @@ import CommentDrawer from "@/components/CommentDrawer"
 import Image from "next/image"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
-import { LoginForm } from "@/components/login-form";
 import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft } from "lucide-react"
 import {Post} from "@/types"
 
