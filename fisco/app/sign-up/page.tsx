@@ -43,6 +43,7 @@ export default function CustomSignUpPage() {
       }
     } catch (err: unknown) {
       console.log(err)
+      console.log(result.status)
       setError("Verification failed.");
     }
   }
