@@ -29,3 +29,38 @@ export async function GET(req: Request) {
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     }});
 }
+
+export async function POST(req: Request) {
+    const { post_id, userId } = await req.json(); // ✅ no destructuring from `params`
+  
+    if (!post_id || !userId) {
+      return NextResponse.json({ error: "Missing post_id or userId" }, { status: 400 });
+    }
+  
+    // Append userId to likes if it's not already present
+    await sql`
+      UPDATE posts
+      SET likes = likes || to_jsonb(${userId}::text)
+      WHERE id = ${post_id} AND NOT (likes @> to_jsonb(ARRAY[${userId}::text]))
+    `;
+  
+    return NextResponse.json({ success: true });
+  }
+
+export async function DELETE(req: Request) {
+    const { post_id, userId } = await req.json();
+  
+    if (!post_id || !userId) {
+      return NextResponse.json({ error: "Missing post_id or userId" }, { status: 400 });
+    }
+  
+    await sql`
+        UPDATE posts
+        SET likes = likes - ${userId}::text
+        WHERE id = ${post_id}
+        `;
+
+  
+    return NextResponse.json({ success: true });
+  }
+  

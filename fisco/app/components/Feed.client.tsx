@@ -3,6 +3,9 @@
 import ImageUpload, { ImageUploadHandle } from "@/components/ImageUpload.client"
 import { useState, useRef, useEffect, type TouchEvent } from "react"
 import Image from "next/image"
+import { useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
+import { LoginForm } from "@/components/login-form";
 import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft } from "lucide-react"
 import {Post} from "@/types"
 
@@ -11,6 +14,7 @@ const POSTS_PER_PAGE = 5;
 export default function Feed({ postData, offset }: { postData: Post[], offset: number }) {
   const [posts, setPosts] = useState<Post[]>(postData);
   const [showUploadPage, setShowUploadPage] = useState(false)
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
@@ -19,7 +23,8 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   const containerRef = useRef<HTMLDivElement>(null)
 
   const [currentPostIndex, setCurrentPostIndex] = useState(0); // how deep into the feed you are
-
+  
+  const router = useRouter();
 
   const fetchMorePosts = async () => {
   try {
@@ -132,10 +137,55 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   const goBackToFeed = () => {
     setShowUploadPage(false)
   }
-
-  const handleLike = async() => {
-    const user = await currentUser();
-  }
+  const { user } = useUser();
+  const handleLike = async (post_id: string) => {
+    if (user) {
+      const userId = user.id;
+  
+      // Find the post in the current state
+      const post = posts.find((post) => post.id === post_id);
+  
+      if (!post) return;
+  
+      const hasLiked = post.likes.includes(userId);
+  
+      // Make an API call to update the likes array for the post
+      await fetch(`/api/testendpoint`, {
+        method: hasLiked ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ post_id, userId }), // send ID in body, not path
+      });
+      
+  
+      // Update the likes array for the specific post in the client-side state
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (post.id === post_id) {
+            if (hasLiked) {
+              // Remove the user ID from the likes array
+              return {
+                ...post,
+                likes: post.likes.filter((id) => id !== userId),
+              };
+            } else {
+              // Add the user ID to the likes array
+              return {
+                ...post,
+                likes: [...post.likes, userId],
+              };
+            }
+          } else {
+            // Return the post unchanged
+            return post;
+          }
+        })
+      );
+    } else {
+      alert("Please sign in to like posts!");
+    }
+  };
 
   return (
     <div
@@ -193,7 +243,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                       >
                         <Upload className="w-7 h-7 text-white" />
                     </button>
-                    <button onClick={() => {}} className="flex flex-col items-center">
+                    <button onClick={() => handleLike(post.id)} className="flex flex-col items-center">
                       <Heart
                         className={`w-7 h-7 text-white`}
                       />
