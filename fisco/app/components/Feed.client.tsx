@@ -14,7 +14,9 @@ const POSTS_PER_PAGE = 5;
 export default function Feed({ postData, offset }: { postData: Post[], offset: number }) {
   const [posts, setPosts] = useState<Post[]>(postData);
   const [showUploadPage, setShowUploadPage] = useState(false)
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  // Lock for liking posts
+  const [likeInProgress, setLikeInProgress] = useState<string | null>(null);
+
 
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
@@ -137,53 +139,72 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   const goBackToFeed = () => {
     setShowUploadPage(false)
   }
+
   const { user } = useUser();
   const handleLike = async (post_id: string) => {
-    if (user) {
-      const userId = user.id;
-  
-      // Find the post in the current state
-      const post = posts.find((post) => post.id === post_id);
-  
-      if (!post) return;
-  
-      const hasLiked = post.likes.includes(userId);
-  
-      // Make an API call to update the likes array for the post
-      await fetch(`/api/testendpoint`, {
+    // If user is not signed in
+    if (!user){
+        alert("Please sign in to like posts!");
+        return;
+    }
+    // Prohibits the user from liking the same post multiple times
+    if (likeInProgress === post_id) {
+        return;
+    }
+    
+    // Lock so there's only a single request
+    setLikeInProgress(post_id);
+
+    const userId = user.id;
+    const post = posts.find((p) => p.id === post_id);
+    if (!post) {
+        setLikeInProgress(null);
+        return;
+    }
+
+    const hasLiked = post.likes.includes(user?.id);
+
+    // Make an API call to update the likes array for the post
+    try {
+        // Determines whether to like/remove like from the post
+        await fetch(`/api/testendpoint`, {
         method: hasLiked ? 'DELETE' : 'POST',
         headers: {
-          'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
         },
         body: JSON.stringify({ post_id, userId }), // send ID in body, not path
-      });
-      
-  
-      // Update the likes array for the specific post in the client-side state
-      setPosts((prevPosts) =>
+        });
+        
+
+        // Update the likes array for the specific post in the client-side state
+        setPosts((prevPosts) =>
         prevPosts.map((post) => {
-          if (post.id === post_id) {
+            if (post.id === post_id) {
             if (hasLiked) {
-              // Remove the user ID from the likes array
-              return {
+                // Remove the user ID from the likes array
+                return {
                 ...post,
                 likes: post.likes.filter((id) => id !== userId),
-              };
+                };
             } else {
-              // Add the user ID to the likes array
-              return {
+                // Add the user ID to the likes array
+                return {
                 ...post,
                 likes: [...post.likes, userId],
-              };
+                };
             }
-          } else {
+            } else {
             // Return the post unchanged
             return post;
-          }
+            }
         })
-      );
-    } else {
-      alert("Please sign in to like posts!");
+        );
+    }
+    catch (error) {
+        console.error("Error liking post:", error);
+    } finally {
+        // Unlock
+        setLikeInProgress(null);
     }
   };
 
@@ -243,10 +264,21 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                       >
                         <Upload className="w-7 h-7 text-white" />
                     </button>
-                    <button onClick={() => handleLike(post.id)} className="flex flex-col items-center">
-                      <Heart
-                        className={`w-7 h-7 text-white`}
-                      />
+                    <button onClick={() =>{
+                        if (user){
+                            handleLike(post.id)
+                        }
+                        else {
+                            router.push("/login")
+                        }
+                        }}
+                        className="flex flex-col items-center"
+                    >
+                        <Heart
+                            className={`w-7 h-7 transition-colors duration-200 ease-in-out  ${
+                            user?.id && post.likes.includes(user.id) ? "text-red-500 fill-red-500" : "text-white"
+                            }`}
+                        />
                       <span className="text-white text-xs">{post.likes.length}</span>
                     </button>
 

@@ -31,36 +31,65 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-    const { post_id, userId } = await req.json(); // ✅ no destructuring from `params`
-  
+    // Get post id and user id from json payload
+    const { post_id, userId } = await req.json();
+    
+    // Check to ensure they exist
     if (!post_id || !userId) {
       return NextResponse.json({ error: "Missing post_id or userId" }, { status: 400 });
     }
   
     // Append userId to likes if it's not already present
-    await sql`
-      UPDATE posts
-      SET likes = likes || to_jsonb(${userId}::text)
-      WHERE id = ${post_id} AND NOT (likes @> to_jsonb(ARRAY[${userId}::text]))
-    `;
-  
-    return NextResponse.json({ success: true });
+    // Append post_id to liked_posts if it's not already present
+    try {
+        await sql`
+          UPDATE posts
+          SET likes = likes || to_jsonb(${userId}::text)
+          WHERE id = ${post_id} AND NOT (likes @> to_jsonb(ARRAY[${userId}::text]))
+        `;
+    
+        await sql`
+          UPDATE users
+          SET liked_posts = liked_posts || to_jsonb(ARRAY[${post_id}])
+          WHERE clerk_user_id = ${userId}
+            AND NOT (liked_posts @> to_jsonb(ARRAY[${post_id}]))
+        `;
+    
+        return NextResponse.json({ success: true });
+      } catch (error) {
+        // Handle any errors that occur during the database operations
+        console.error("Error liking post:", error);
+        return NextResponse.json({ error: "Failed to like post" }, { status: 500 });
+      }
   }
 
 export async function DELETE(req: Request) {
+    // Get post id and user id from json payload
     const { post_id, userId } = await req.json();
-  
+    
+    // Check to ensure they exist
     if (!post_id || !userId) {
       return NextResponse.json({ error: "Missing post_id or userId" }, { status: 400 });
     }
-  
-    await sql`
-        UPDATE posts
-        SET likes = likes - ${userId}::text
-        WHERE id = ${post_id}
+    // Remove userId from likes if it's present
+    // Remove post_id from liked_posts if it's present
+    try {
+        await sql`
+          UPDATE posts
+          SET likes = likes - ${userId}::text
+          WHERE id = ${post_id}::uuid
         `;
-
-  
-    return NextResponse.json({ success: true });
+    
+        await sql`
+          UPDATE users
+          SET liked_posts = liked_posts - ${post_id}
+          WHERE clerk_user_id = ${userId}::text
+        `;
+    
+        return NextResponse.json({ success: true });
+      } catch (error) {
+        // Handle any errors that occur during the database operations
+        console.error("Error deleting like:", error);
+        return NextResponse.json({ error: "Failed to delete like" }, { status: 500 });
   }
-  
+}
