@@ -1,5 +1,8 @@
 "use client";
+
 import * as React from "react";
+import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 
@@ -10,6 +13,16 @@ interface CommentDrawerProps {
 
 export default function CommentDrawer({ open, onOpenChange }: CommentDrawerProps) {
   const [comment, setComment] = React.useState("");
+  const { isSignedIn, isLoaded } = useAuth();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (open && isLoaded && !isSignedIn) {
+      // Redirect to login and immediately close the drawer
+      onOpenChange(false);
+      router.push("/login");
+    }
+  }, [open, isSignedIn, isLoaded, router, onOpenChange]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setComment(e.target.value);
@@ -17,10 +30,12 @@ export default function CommentDrawer({ open, onOpenChange }: CommentDrawerProps
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Currently just clears the input. No backend logic yet
     setComment("");
     onOpenChange(false);
   };
+
+  // Don’t render the drawer content if not signed in
+  if (!isSignedIn) return null;
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
