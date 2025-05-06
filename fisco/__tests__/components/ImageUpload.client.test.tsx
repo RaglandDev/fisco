@@ -7,12 +7,8 @@ import { createRef } from "react";
 
 // Mock server setup
 const server = setupServer(
-  http.post("/api/images", () => {
-    return HttpResponse.json({
-      url: "data:image/jpeg;base64,mockImageData",
-      post: { id: "mock-post-id" },
-      imageId: "mock-image-id"
-    });
+  http.post("/api/images", async () => {
+    return HttpResponse.json({ id: "mock-image-id" });
   })
 );
 
@@ -32,12 +28,10 @@ describe("ImageUpload Component", () => {
   });
 
   it("should handle file upload and call onUploadComplete callback", async () => {
-    // Create a mock callback function
     const mockOnUploadComplete = vi.fn();
     const mockOnUploadError = vi.fn();
     const ref = createRef<ImageUploadHandle>();
     
-    // Render the component with the mock callback
     const { container } = render(
       <ImageUpload 
         ref={ref}
@@ -46,42 +40,48 @@ describe("ImageUpload Component", () => {
       />
     );
     
-    // Find the hidden file input
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     expect(fileInput).toBeDefined();
     
-    // Create a mock file
     const file = new File(["dummy content"], "test-image.jpg", { type: "image/jpeg" });
-    
-    // Trigger file selection through the ref
-    expect(ref.current).toBeDefined();
-    
-    // Manually trigger file selection
     fireEvent.change(fileInput, { target: { files: [file] } });
     
-    // Wait for the upload to complete and check if the callback was called
     await waitFor(() => {
-      expect(mockOnUploadComplete).toHaveBeenCalledWith("data:image/jpeg;base64,mockImageData");
+      expect(mockOnUploadComplete).toHaveBeenCalledWith("mock-image-id");
     });
-    
-    // Make sure error callback was not called
     expect(mockOnUploadError).not.toHaveBeenCalled();
+  });
+
+  it("should not allow files larger than 10MB", async () => {
+    const mockOnUploadComplete = vi.fn();
+    const mockOnUploadError = vi.fn();
+    const ref = createRef<ImageUploadHandle>();
+    const { container } = render(
+      <ImageUpload 
+        ref={ref}
+        onUploadComplete={mockOnUploadComplete}
+        onUploadError={mockOnUploadError}
+      />
+    );
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    // 11MB file
+    const bigFile = new File([new ArrayBuffer(11 * 1024 * 1024)], "big-image.jpg", { type: "image/jpeg" });
+    fireEvent.change(fileInput, { target: { files: [bigFile] } });
+    await waitFor(() => {
+      expect(mockOnUploadError).toHaveBeenCalledWith(expect.stringContaining("Maximum allowed size is 10MB"));
+    });
+    expect(mockOnUploadComplete).not.toHaveBeenCalled();
   });
   
   it("should handle upload errors and call onUploadError callback", async () => {
-    // Override the default handler for this test
     server.use(
       http.post("/api/images", () => {
         return HttpResponse.json({ error: "Server error" }, { status: 500 });
       })
     );
-    
-    // Create mock callbacks
     const mockOnUploadComplete = vi.fn();
     const mockOnUploadError = vi.fn();
     const ref = createRef<ImageUploadHandle>();
-    
-    // Render the component with the mock callbacks
     const { container } = render(
       <ImageUpload 
         ref={ref}
@@ -89,23 +89,12 @@ describe("ImageUpload Component", () => {
         onUploadError={mockOnUploadError}
       />
     );
-    
-    // Find the hidden file input
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
-    expect(fileInput).toBeDefined();
-    
-    // Create a mock file
     const file = new File(["dummy content"], "test-image.jpg", { type: "image/jpeg" });
-    
-    // Trigger file upload
     fireEvent.change(fileInput, { target: { files: [file] } });
-    
-    // Wait for the error callback to be called
     await waitFor(() => {
-      expect(mockOnUploadError).toHaveBeenCalled();
+      expect(mockOnUploadError).toHaveBeenCalledWith("Server error");
     });
-    
-    // Make sure success callback was not called
     expect(mockOnUploadComplete).not.toHaveBeenCalled();
   });
   

@@ -7,7 +7,7 @@ interface ImageUploadProps {
   onUploadError?: (error: string) => void;
 }
 
-// Define the handle type for the ref
+// Define the handle type
 export interface ImageUploadHandle {
   triggerFileSelect: () => void;
 }
@@ -42,9 +42,9 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>((props, ref)
         throw new Error(data.error || "Upload failed");
       }
 
-      // Call the callback with the image URL
+      // Call the callback with the image ID
       if (onUploadComplete) {
-        onUploadComplete(data.url);
+        onUploadComplete(data.id);
       }
     } catch (error: unknown) {
       console.error("Upload error:", error);
@@ -53,7 +53,7 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>((props, ref)
         errorMessage = error.message;
       }
       setError(errorMessage);
-      // Call the error callback
+      // Report any errors
       if (onUploadError) {
         onUploadError(errorMessage);
       }
@@ -65,6 +65,15 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>((props, ref)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const maxSizeMB = 10;
+      if (file.size > maxSizeMB * 1024 * 1024) {
+        const errorMsg = `File is too large. Maximum allowed size is ${maxSizeMB}MB.`;
+        setError(errorMsg);
+        if (onUploadError) {
+          onUploadError(errorMsg);
+        }
+        return;
+      }
       uploadImage(file);
     }
   };
@@ -74,7 +83,7 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>((props, ref)
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/*"  // Accepts any image file
         onChange={handleFileChange}
         disabled={isUploading}
         style={{ display: "none" }}
