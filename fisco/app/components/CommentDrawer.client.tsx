@@ -38,12 +38,12 @@ export default function CommentDrawer({ open, onOpenChange }: CommentDrawerProps
   if (!isSignedIn) return null;
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
+    <Drawer  open={open} onOpenChange={onOpenChange}>
       <DrawerContent>
         <DrawerHeader className="flex flex-col items-center">
           <DrawerTitle>Comments</DrawerTitle>
         </DrawerHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4">
+        <form aria-label="Comment form" onSubmit={handleSubmit} className="flex flex-col gap-4 p-4">
           <input
             type="text"
             value={comment}
