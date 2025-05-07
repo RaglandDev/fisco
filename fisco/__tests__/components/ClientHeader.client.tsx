@@ -34,7 +34,7 @@ it('renders client header with logout button when user is signed in', () => {
   });
 
   render(
-    <ClerkProvider>
+    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <ClientHeader />
     </ClerkProvider>
   );
@@ -53,7 +53,7 @@ it('renders login button when user is logged out', () => {
   });
 
   render(
-    <ClerkProvider>
+    <ClerkProvideri publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <ClientHeader />
     </ClerkProvider>
   );
