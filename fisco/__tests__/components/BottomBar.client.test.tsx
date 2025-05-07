@@ -15,11 +15,17 @@ vi.mock('next/navigation', () => ({
   usePathname: vi.fn().mockReturnValue('/'),  // Mock usePathname with a dummy return value
 }));
 
+vi.mock('@clerk/nextjs', () => ({
+  ClerkProvider: ({ children }) => <div>{children}</div>,
+  useAuth: () => ({ isSignedIn: false, isLoaded: true }),
+  useUser: () => ({ user: null, isSignedIn: false }),
+}));
+
 
 it('renders bottom bar', async () => {
  
   render(
-    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider>
       <BottomBar/>
     </ClerkProvider>
     )

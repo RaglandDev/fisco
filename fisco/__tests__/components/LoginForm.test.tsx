@@ -13,10 +13,28 @@ vi.mock('next/navigation', () => ({
   usePathname: vi.fn().mockReturnValue('/'),  // Mock usePathname with a dummy return value
 }));
 
+// Mock ClerkProvider, useAuth, useUser, and useSignIn from @clerk/nextjs
+vi.mock('@clerk/nextjs', () => ({
+  ClerkProvider: ({ children }) => <div>{children}</div>,
+  useAuth: () => ({ isSignedIn: false, isLoaded: true }),
+  useUser: () => ({ user: null, isSignedIn: false }),
+  useSignIn: () => ({
+    isLoaded: true,
+    signIn: {
+      create: vi.fn().mockResolvedValue({
+        status: 'complete',
+        createdSessionId: 'mock-session-id',
+      }),
+      authenticateWithRedirect: vi.fn(),
+    },
+    setActive: vi.fn(),
+  }),
+}));
+
 
 it('renders the login form component', () => {
     render(
-      <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+      <ClerkProvider>
         <LoginForm />
       </ClerkProvider>
       );

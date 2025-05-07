@@ -24,6 +24,12 @@ vi.mock('@clerk/nextjs', async () => {
   };
 });
 
+vi.mock('@clerk/nextjs', () => ({
+  ClerkProvider: ({ children }) => <div>{children}</div>,
+  useAuth: () => ({ isSignedIn: false, isLoaded: true }),
+  useUser: () => ({ user: null, isSignedIn: false }),
+}));
+
 import { useAuth } from '@clerk/nextjs';
 
 it('renders client header with logout button when user is signed in', () => {
@@ -34,7 +40,7 @@ it('renders client header with logout button when user is signed in', () => {
   });
 
   render(
-    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider>
       <ClientHeader />
     </ClerkProvider>
   );
@@ -53,7 +59,7 @@ it('renders login button when user is logged out', () => {
   });
 
   render(
-    <ClerkProvideri publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider>
       <ClientHeader />
     </ClerkProvider>
   );
