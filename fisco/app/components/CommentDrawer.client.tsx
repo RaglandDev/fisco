@@ -46,6 +46,7 @@ export default function CommentDrawer({ open, onOpenChange, postId }: CommentDra
       setComment("");
       onOpenChange(false);
     } catch (err) {
+      console.log(err)
       alert("Failed to post comment");
     }
   };
