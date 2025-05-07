@@ -2,7 +2,7 @@
 
 import ImageUpload, { ImageUploadHandle } from "@/components/ImageUpload.client"
 import { useState, useRef, useEffect, type TouchEvent } from "react"
-import CommentDrawer from "@/components/CommentDrawer"
+import CommentDrawer from "@/components/CommentDrawer.client"
 import Image from "next/image"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
@@ -215,6 +215,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
+      aria-label="Feed window"
     >
       <div
         className="flex w-[200%] h-[100dvh] transition-transform duration-300"
@@ -265,7 +266,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                       >
                         <Upload className="w-7 h-7 text-white" />
                     </button>
-                    <button onClick={() =>{
+                    <button aria-label="Like button" onClick={() =>{
                         if (user){
                             handleLike(post.id)
                         }
@@ -282,7 +283,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                         />
                       <span className="text-white text-xs">{post.likes.length}</span>
                     </button>
-                    <button onClick={() => setIsCommentDrawerOpen(true)} className="flex flex-col items-center">
+                    <button aria-label="Comment button" onClick={() => setIsCommentDrawerOpen(true)} className="flex flex-col items-center">
                       <MessageCircle className="w-7 h-7 text-white" />
                       <span className="text-white text-xs">{post.comments.length}</span>
                     </button>
@@ -311,7 +312,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
               </div>
             </div>
             <h2 className="text-white text-xl mb-8">Share your outfit!</h2>
-            <button onClick={handleUpload} className="bg-white text-black font-medium rounded-full px-8 py-3">
+            <button aria-label="Upload button" onClick={handleUpload} className="bg-white text-black font-medium rounded-full px-8 py-3">
               Upload
             </button>
             {uploadError && <p className="text-red-500 mt-4">{uploadError}</p>}

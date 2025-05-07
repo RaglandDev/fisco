@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import Profile from "@/components/Profile"; // Adjust path if necessary
+import Profile from "@/components/Profile.client"; // Adjust path if necessary
 import { useAuth } from '@clerk/nextjs';
 
 // Mocking the `useAuth` hook from Clerk using Vitest's mocking

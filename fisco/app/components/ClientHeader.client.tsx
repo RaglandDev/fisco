@@ -1,5 +1,4 @@
-'use client';
-
+'use client'
 import { useAuth, SignOutButton } from '@clerk/nextjs';
 import Link from 'next/link';
 
@@ -10,6 +9,7 @@ export default function ClientHeader() {
     <header className="absolute top-4 right-4 z-50">
       {!userId ? (
         <Link
+          aria-label="Login link"
           href="/login"
           className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:opacity-90 transition"
         >
@@ -17,7 +17,7 @@ export default function ClientHeader() {
         </Link>
       ) : (
         <SignOutButton>
-          <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:opacity-90 transition">
+          <button aria-label="Sign out button" className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:opacity-90 transition">
             Logout
           </button>
         </SignOutButton>

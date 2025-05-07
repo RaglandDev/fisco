@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import BottomNavBar from "@/components/BottomBar";
+import BottomNavBar from "@/components/BottomBar.client";
 import { useAuth } from '@clerk/nextjs';
 
 const Profile: React.FC = () => {

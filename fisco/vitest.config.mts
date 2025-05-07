@@ -35,6 +35,7 @@ export default defineConfig({
         '**/*.test.{ts,tsx}',
         '**/*.spec.{ts,tsx}',
         'node_modules/',
+        'app/components/ui/*'
       ],
     },
   },

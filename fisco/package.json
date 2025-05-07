@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
+    "dev": "npm install && next dev --turbopack",
+    "build": "npm install && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest",
-    "coverage": "vitest run --coverage"
+    "coverage": "npm install && vitest run --coverage"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.18.5",
@@ -16,6 +16,7 @@
     "@radix-ui/react-dialog": "^1.1.11",
     "@radix-ui/react-label": "^2.1.4",
     "@radix-ui/react-slot": "^1.2.0",
+    "@testing-library/user-event": "^14.6.1",
     "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
