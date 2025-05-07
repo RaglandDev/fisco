@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 interface CommentDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  postId: string;
 }
 
-export default function CommentDrawer({ open, onOpenChange }: CommentDrawerProps) {
+export default function CommentDrawer({ open, onOpenChange, postId }: CommentDrawerProps) {
   const [comment, setComment] = React.useState("");
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded, userId: clerkUserId } = useAuth();
   const router = useRouter();
 
   React.useEffect(() => {
@@ -28,10 +29,25 @@ export default function CommentDrawer({ open, onOpenChange }: CommentDrawerProps
     setComment(e.target.value);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setComment("");
-    onOpenChange(false);
+    console.log("Submitting comment:", { postId, clerkUserId, comment });
+    if (!comment.trim()) return;
+    try {
+      await fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          postId,
+          clerkUserId,
+          commentText: comment,
+        }),
+      });
+      setComment("");
+      onOpenChange(false);
+    } catch (err) {
+      alert("Failed to post comment");
+    }
   };
 
   // Don’t render the drawer content if not signed in

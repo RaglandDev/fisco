@@ -286,7 +286,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                       <MessageCircle className="w-7 h-7 text-white" />
                       <span className="text-white text-xs">{post.comments.length}</span>
                     </button>
-                    <CommentDrawer open={isCommentDrawerOpen} onOpenChange={setIsCommentDrawerOpen} />
+                    <CommentDrawer open={isCommentDrawerOpen} onOpenChange={setIsCommentDrawerOpen} postId={post.id}/>
 
                     <button onClick={() => {}} className="flex flex-col items-center">
                       <Share2 className="w-7 h-7 text-white" />
