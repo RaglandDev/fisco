@@ -16,7 +16,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 
-it('renders a list of posts', async () => {
+it('renders bottom bar', async () => {
  
   render(
     <ClerkProvider>
