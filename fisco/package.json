@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
+    "dev": "npm install && next dev --turbopack",
+    "build": "npm install && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest",
-    "coverage": "vitest run --coverage"
+    "coverage": "npm install && vitest run --coverage"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.18.5",
