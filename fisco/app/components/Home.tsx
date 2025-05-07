@@ -1,8 +1,8 @@
 import { getHomeData } from "@/lib/getHomeData";
 import { Post } from "@/types/index";
 import Feed from "@/components/Feed.client";
-import ClientHeader from "@/components/ClientHeader";
-import BottomNavBar from "@/components/BottomBar";
+import ClientHeader from "@/components/ClientHeader.client";
+import BottomNavBar from "@/components/BottomBar.client";
 
 const POSTS_PER_PAGE = 5
 

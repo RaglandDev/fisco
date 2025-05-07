@@ -2,7 +2,7 @@
 
 import ImageUpload, { ImageUploadHandle } from "@/components/ImageUpload.client"
 import { useState, useRef, useEffect, type TouchEvent } from "react"
-import CommentDrawer from "@/components/CommentDrawer"
+import CommentDrawer from "@/components/CommentDrawer.client"
 import Image from "next/image"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
