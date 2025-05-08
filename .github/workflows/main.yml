@@ -24,7 +24,7 @@ jobs:
 
       - name: End-to-end tests
         working-directory: ./fisco
-        run: npm run e2e
+        run: npm run build && npm run e2e
 
   deploy:
     env:
