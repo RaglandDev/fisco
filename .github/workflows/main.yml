@@ -18,9 +18,13 @@ jobs:
         working-directory: ./fisco
         run: npm install
 
-      - name: Run tests
+      - name: API and component tests
         working-directory: ./fisco
         run: npm run coverage
+
+      - name: End-to-end tests
+        working-directory: ./fisco
+        run: npm run e2e
 
   deploy:
     env:
