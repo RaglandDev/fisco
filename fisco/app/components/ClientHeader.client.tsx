@@ -9,7 +9,7 @@ export default function ClientHeader() {
     <header className="absolute top-4 right-4 z-50">
       {!userId ? (
         <Link
-          aria-label="Login link"
+          aria-label="Login button"
           href="/login"
           className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:opacity-90 transition"
         >

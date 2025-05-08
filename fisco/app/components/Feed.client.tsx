@@ -230,9 +230,10 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
             onScroll={handleScroll}
           >
             {posts.map((post, index) => (
-              <div key={post.id} className="relative h-full w-full snap-start snap-always">
+              <div key={post.id} className="relative h-full w-full snap-start snap-alway">
                 <div className="absolute inset-0">
                   <Image
+                    data-testid='Post image'
                     src={`data:${post.image_data.startsWith('/9j/') ? 'image/jpeg' : 'image/png'};base64,${post.image_data}` || "/placeholder.svg"}
                     alt={'alt'}
                     fill
@@ -261,6 +262,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                   <div className="flex flex-col gap-4 items-center">
                   {/* Upload button - only visible on md and up */}
                     <button
+                      aria-label="Upload page button"
                       onClick={() => {setShowUploadPage(true)}}
                       className="flex flex-col items-center"
                       >
@@ -301,7 +303,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
 
         {/* Upload Page */}
         <div className="w-1/2 h-full bg-black flex flex-col items-center justify-center relative">
-          <button onClick={goBackToFeed} className="absolute top-4 left-4 text-white p-2">
+          <button aria-label="Return button" onClick={goBackToFeed} className="absolute top-4 left-4 text-white p-2">
             <ArrowLeft className="w-6 h-6" />
           </button>
 

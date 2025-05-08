@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv } from 'vite'
+import { configDefaults } from 'vitest/config'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -23,6 +24,10 @@ export default defineConfig({
     environment: 'jsdom',
     css: false,
     env: loadEnv('', process.cwd(), ''),
+    exclude: [
+    ...configDefaults.exclude,
+      '**/__tests__/e2e/**'
+    ],
     coverage: {
       provider: "v8",
       include: [
@@ -35,7 +40,8 @@ export default defineConfig({
         '**/*.test.{ts,tsx}',
         '**/*.spec.{ts,tsx}',
         'node_modules/',
-        'app/components/ui/*'
+        'app/components/ui/*',
+        '**/__tests__/e2e/**'
       ],
     },
   },
