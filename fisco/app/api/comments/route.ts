@@ -3,6 +3,13 @@ import { neon } from "@neondatabase/serverless";
 
 const sql = neon(process.env.DATABASE_URL!);
 
+interface CommentRow {
+  id: string;
+  comment_text: string;
+  created_at: Date | null;
+  user_id: string | null;
+}
+
 export async function POST(req: NextRequest) {
   const { postId, clerkUserId, commentText } = await req.json();
 
@@ -42,18 +49,18 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const result = await sql`
-      SELECT id, comment_text, created_at
-      FROM comments
-      WHERE post_id = ${postId}
-      ORDER BY created_at ASC;
-    `;
+    const result = (await sql`
+  SELECT id, comment_text, created_at, user_id
+  FROM comments
+  WHERE post_id = ${postId}
+  ORDER BY created_at ASC;
+`) as CommentRow[];
 
-    const serialized = result.map((row: any) => ({
+    const serialized = result.map((row) => ({
       id: row.id,
       comment_text: row.comment_text,
       created_at: row.created_at?.toISOString?.() ?? "",
-      user_id: row.user_id ?? null,
+      user_id: row.user_id,
     }));
 
     return NextResponse.json(serialized);
