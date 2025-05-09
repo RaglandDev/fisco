@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = await sql`
-      SELECT id, comment_text, created_at, user_id
+      SELECT id, comment_text, created_at
       FROM comments
       WHERE post_id = ${postId}
       ORDER BY created_at ASC;
@@ -59,23 +59,5 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(serialized);
   } catch (err) {
     return NextResponse.json({ error: "DB error", detail: String(err) }, { status: 500 });
-  }
-}
-
-export async function DELETE(req: Request) {
-  const { commentId } = await req.json();
-
-  if (!commentId) {
-    return NextResponse.json({ error: "Missing commentId" }, { status: 400 });
-  }
-
-  try {
-    await sql`
-      DELETE FROM comments
-      WHERE id = ${commentId}
-    `;
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    return NextResponse.json({ error: "Failed to delete comment", detail: String(err) }, { status: 500 });
   }
 }

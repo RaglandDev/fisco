@@ -48,7 +48,7 @@ export default function CommentDrawer({
     try {
       const res = await fetch(`/api/comments?postId=${postId}`);
       const data = await res.json();
-      console.log("Fetched comments:", data); // ✅ Debug
+
       if (Array.isArray(data)) {
         setComments(data);
       } else {
@@ -95,27 +95,6 @@ export default function CommentDrawer({
     }
   };
 
-  const handleDelete = async (commentId: string) => {
-    try {
-      const res = await fetch("/api/comments", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ commentId }),
-      });
-  
-      if (!res.ok) {
-        alert("Failed to delete comment");
-        return;
-      }
-  
-      // ✅ Remove the comment from local state
-      setComments((prev) => prev?.filter((c) => c.id !== commentId) || []);
-    } catch (err) {
-      console.error("Failed to delete comment", err);
-      alert("Error deleting comment");
-    }
-  };
-
   if (!isSignedIn) return null;
 
   return (
@@ -134,15 +113,6 @@ export default function CommentDrawer({
                   <p className="text-xs text-gray-500">
                     {new Date(c.created_at).toLocaleString()}
                   </p>
-                  {/* ✅ Show delete if comment.user_id matches current user */}
-                  {clerkUserId === c.user_id && (
-                    <button
-                      onClick={() => handleDelete(c.id)}
-                      className="text-xs text-red-500 mt-1 hover:underline"
-                    >
-                      Delete
-                    </button>
-                  )}
                 </div>
               ))
             ) : (
@@ -153,7 +123,11 @@ export default function CommentDrawer({
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4">
+        <form
+          aria-label="Comment form"
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-4 p-4"
+        >
           <input
             type="text"
             value={comment}
