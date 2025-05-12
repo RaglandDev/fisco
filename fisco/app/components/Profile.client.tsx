@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import BottomNavBar from "@/components/BottomBar.client";
+import DropDownMenu from "@/components/DropDown.client";
 import { useAuth } from '@clerk/nextjs';
 
 const Profile: React.FC = () => {
@@ -65,7 +65,7 @@ const Profile: React.FC = () => {
         </div>
       </div>
 
-      <BottomNavBar />
+      <DropDownMenu />
     </div>
   );
 };
