@@ -123,13 +123,15 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   }
   
   // Handler for when upload completes successfully
-  const handleUploadComplete = (_imageUrl: string) => {
-    // Could add logic to add the newly uploaded image to the feed
+  const handleUploadComplete = (imageUrl: string) => {
     setUploadError(null);
-    setShowUploadPage(false); // Return to feed after successful upload
-    
-    // Optionally refresh posts
-    fetchMorePosts();
+    setShowUploadPage(false);
+    if (imageUrl) {
+      sessionStorage.setItem("previewImageData", imageUrl);
+    }
+    console.log("Image URL for preview:", imageUrl);
+    router.push("/preview");
+    console.log("Navigating to /preview");
   }
   
   // Handler for upload errors

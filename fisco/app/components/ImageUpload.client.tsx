@@ -25,39 +25,36 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>((props, ref)
     },
   }));
 
-  const uploadImage = async (file: File) => {
+  const previewImage = async (file: File) => {
     try {
       setIsUploading(true);
       setError("");
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch("/api/images", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Upload failed");
-      }
-
-      // Call the callback with the image ID
-      if (onUploadComplete) {
-        onUploadComplete(data.id);
-      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        if (onUploadComplete) {
+          onUploadComplete(result); // result is a data URL
+        }
+        setIsUploading(false);
+      };
+      reader.onerror = () => {
+        setError("Failed to read the image file.");
+        setIsUploading(false);
+        if (onUploadError) {
+          onUploadError("Failed to read the image file.");
+        }
+      };
+      reader.readAsDataURL(file);
     } catch (error: unknown) {
-      console.error("Upload error:", error);
-      let errorMessage = "Failed to upload image";
+      console.error("Preview error:", error);
+      let errorMessage = "Failed to prepare image preview.";
       if (error instanceof Error) {
         errorMessage = error.message;
       }
       setError(errorMessage);
-      // Report any errors
       if (onUploadError) {
         onUploadError(errorMessage);
       }
-    } finally {
       setIsUploading(false);
     }
   };
@@ -74,7 +71,7 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>((props, ref)
         }
         return;
       }
-      uploadImage(file);
+      previewImage(file);
     }
   };
 
