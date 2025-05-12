@@ -129,10 +129,21 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   // Handler for when upload completes successfully
   const handleUploadComplete = (imageUrl: string) => {
     setUploadError(null);
-    setShowUploadPage(false); // Return to feed after successful upload
-
-    // Optionally refresh posts
-    fetchMorePosts();
+    setShowUploadPage(false); // Hide upload page
+    
+    // Save image data to sessionStorage for preview page
+    sessionStorage.setItem("previewImageData", imageUrl);
+    
+    // Extract mime type from data URL if possible
+    let mime = null;
+    if (imageUrl.startsWith("data:")) {
+      const match = imageUrl.match(/^data:(.*?);base64,/);
+      mime = match ? match[1] : null;
+    }
+    if (mime) sessionStorage.setItem("previewImageType", mime);
+    
+    // Navigate to preview page
+    router.push("/preview");
   }
 
   // Handler for upload errors
@@ -265,8 +276,8 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                   <div className="flex flex-col gap-4 items-center">
                     {/* Upload button - only visible on md and up */}
                     <button
-                      aria-label="Upload page button"
-                      onClick={() => { setShowUploadPage(true) }}
+                      aria-label="Upload button"
+                      onClick={handleUpload}
                       className="flex flex-col items-center"
                     >
                       <Upload className="w-7 h-7 text-white" />
@@ -339,7 +350,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
               </div>
             </div>
             <h2 className="text-white text-xl mb-8">Share your outfit!</h2>
-            <button aria-label="Upload button" onClick={handleUpload} className="bg-white text-black font-medium rounded-full px-8 py-3">
+            <button aria-label="Feed upload button" onClick={handleUpload} className="bg-white text-black font-medium rounded-full px-8 py-3">
               Upload
             </button>
             {uploadError && <p className="text-red-500 mt-4">{uploadError}</p>}

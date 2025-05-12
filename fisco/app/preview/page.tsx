@@ -30,7 +30,7 @@ export default function PreviewPage() {
       } else {
         setError("No image data found for preview. Please select an image again.");
       }
-    } catch (e) {
+    } catch (_error) {
       setError("Could not retrieve image data. Please try again.");
     }
   }, []);
@@ -77,8 +77,9 @@ export default function PreviewPage() {
         throw new Error(`Failed to create post: ${errorText || postResponse.statusText}`);
       }
       router.push("/");
-    } catch (err: any) {
-      setError(err.message || "Unknown error");
+    } catch (err: Error | unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -126,7 +127,7 @@ export default function PreviewPage() {
             Submitting...
           </>
         ) : (
-          "Post"
+          "Share"
         )}
       </Button>
     </div>

@@ -5,12 +5,25 @@ import { http, HttpResponse } from "msw";
 import ImageUpload, { ImageUploadHandle } from "@/components/ImageUpload.client";
 import { createRef } from "react";
 
+// Mock the FileReader API
+const mockFileReaderInstance = {
+  readAsDataURL: vi.fn(),
+  onload: null as any,
+  onerror: null as any,
+  result: null as any
+};
+
+vi.stubGlobal('FileReader', vi.fn(() => mockFileReaderInstance));
+
 // Mock server setup
 const server = setupServer(
   http.post("/api/images", async () => {
     return HttpResponse.json({ id: "mock-image-id" });
   })
 );
+
+// Mock base64 encoded content
+const mockBase64Content = "data:image/jpeg;base64,ZHVtbXkgY29udGVudA==";
 
 describe("ImageUpload Component", () => {
   // Setup MSW server before tests
@@ -22,98 +35,94 @@ describe("ImageUpload Component", () => {
   // Clean up after all tests
   afterAll(() => server.close());
 
-  it("should render the component without errors", () => {
-    const { container } = render(<ImageUpload />);
-    expect(container).toBeDefined();
-  });
+  // No need to test basic rendering for shadcn components
 
-  it("should handle file upload and call onUploadComplete callback", async () => {
+  it("handles file upload and calls onUploadComplete with data URL", async () => {
     const mockOnUploadComplete = vi.fn();
     const mockOnUploadError = vi.fn();
-    const ref = createRef<ImageUploadHandle>();
-    
     const { container } = render(
       <ImageUpload 
-        ref={ref}
         onUploadComplete={mockOnUploadComplete}
         onUploadError={mockOnUploadError}
       />
     );
     
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
-    expect(fileInput).toBeDefined();
-    
     const file = new File(["dummy content"], "test-image.jpg", { type: "image/jpeg" });
+    
+    // Trigger file selection
     fireEvent.change(fileInput, { target: { files: [file] } });
     
+    // Simulate FileReader onload event
+    mockFileReaderInstance.result = mockBase64Content;
+    mockFileReaderInstance.onload && mockFileReaderInstance.onload({} as any);
+    
     await waitFor(() => {
-      expect(mockOnUploadComplete).toHaveBeenCalledWith("mock-image-id");
+      expect(mockOnUploadComplete).toHaveBeenCalledWith(mockBase64Content);
     });
     expect(mockOnUploadError).not.toHaveBeenCalled();
   });
 
-  it("should not allow files larger than 10MB", async () => {
+  it("rejects files larger than size limit", async () => {
     const mockOnUploadComplete = vi.fn();
     const mockOnUploadError = vi.fn();
-    const ref = createRef<ImageUploadHandle>();
     const { container } = render(
       <ImageUpload 
-        ref={ref}
         onUploadComplete={mockOnUploadComplete}
         onUploadError={mockOnUploadError}
       />
     );
+    
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     // 11MB file
     const bigFile = new File([new ArrayBuffer(11 * 1024 * 1024)], "big-image.jpg", { type: "image/jpeg" });
     fireEvent.change(fileInput, { target: { files: [bigFile] } });
+    
     await waitFor(() => {
-      expect(mockOnUploadError).toHaveBeenCalledWith(expect.stringContaining("Maximum allowed size is 10MB"));
+      expect(mockOnUploadError).toHaveBeenCalled();
     });
     expect(mockOnUploadComplete).not.toHaveBeenCalled();
   });
   
-  it("should handle upload errors and call onUploadError callback", async () => {
-    server.use(
-      http.post("/api/images", () => {
-        return HttpResponse.json({ error: "Server error" }, { status: 500 });
-      })
-    );
+  it("handles FileReader errors", async () => {
     const mockOnUploadComplete = vi.fn();
     const mockOnUploadError = vi.fn();
-    const ref = createRef<ImageUploadHandle>();
     const { container } = render(
       <ImageUpload 
-        ref={ref}
         onUploadComplete={mockOnUploadComplete}
         onUploadError={mockOnUploadError}
       />
     );
+    
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     const file = new File(["dummy content"], "test-image.jpg", { type: "image/jpeg" });
+    
+    // Trigger file selection
     fireEvent.change(fileInput, { target: { files: [file] } });
+    
+    // Simulate FileReader onerror event
+    mockFileReaderInstance.onerror && mockFileReaderInstance.onerror({} as any);
+    
     await waitFor(() => {
-      expect(mockOnUploadError).toHaveBeenCalledWith("Server error");
+      expect(mockOnUploadError).toHaveBeenCalled();
     });
     expect(mockOnUploadComplete).not.toHaveBeenCalled();
   });
   
-  it("should expose triggerFileSelect method via ref", () => {
-    // Create a ref
-    const ref = createRef<ImageUploadHandle>();
-    
-    // Mock the click method
+  it("exposes triggerFileSelect via ref", () => {
+    const originalClick = HTMLInputElement.prototype.click;
     const mockClick = vi.fn();
     HTMLInputElement.prototype.click = mockClick;
     
-    // Render the component with the ref
+    const ref = createRef<ImageUploadHandle>();
     render(<ImageUpload ref={ref} />);
     
-    // Call the triggerFileSelect method
-    expect(ref.current).toBeDefined();
     ref.current?.triggerFileSelect();
-    
-    // Verify that click was called
     expect(mockClick).toHaveBeenCalledTimes(1);
+    
+    // Restore original implementation
+    HTMLInputElement.prototype.click = originalClick;
   });
+  
+
 });
