@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest",
-    "coverage": "vitest run --coverage"
+    "e2e": "npx playwright test",
+    "e2e debug" : "npx playwright test --ui",
+    "coverage": "vitest run --coverage", 
+    "check" : "npm run coverage && npm run build && npm run start"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.18.5",
@@ -29,6 +32,7 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.52.0",
     "@tailwindcss/postcss": "^4.1.4",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.3.0",

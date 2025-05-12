@@ -11,16 +11,31 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}}
+      CLERK_SECRET_KEY: ${{secrets.CLERK_SECRET_KEY}}
     steps:
       - uses: actions/checkout@v3
 
       - name: Install dependencies
         working-directory: ./fisco
-        run: npm install
-
-      - name: Run tests
+        run: npm ci
+        
+      - name: Install Playwright (e2e)
+        working-directory: ./fisco
+        run: npx playwright install --with-deps
+        
+      - name: API and component tests
         working-directory: ./fisco
         run: npm run coverage
+
+      - name: Build app (e2e)
+        working-directory: ./fisco
+        run: npm run build 
+        
+      - name: End-to-end tests 
+        working-directory: ./fisco
+        run: npm run e2e
+        continue-on-error: true
 
   deploy:
     env:

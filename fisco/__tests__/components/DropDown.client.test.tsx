@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 
 import { vi, it, expect } from 'vitest';
 import { ClerkProvider } from '@clerk/nextjs';
-import BottomBar from '@/components/BottomBar.client'
+import DropDownMenu from '@/components/DropDown.client'
 
 // Mock the useRouter and usePathname hooks from Next.js
 vi.mock('next/navigation', () => ({
@@ -26,7 +26,7 @@ it('renders bottom bar', async () => {
  
   render(
     <ClerkProvider>
-      <BottomBar/>
+      <DropDownMenu/>
     </ClerkProvider>
     )
 });

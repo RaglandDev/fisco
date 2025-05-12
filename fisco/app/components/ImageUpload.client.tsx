@@ -78,6 +78,7 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>((props, ref)
   return (
     <div className="h-full">
       <input
+        data-testid="File upload"
         ref={inputRef}
         type="file"
         accept="image/*"  // Accepts any image file

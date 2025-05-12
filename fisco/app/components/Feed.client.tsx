@@ -7,12 +7,12 @@ import Image from "next/image"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft } from "lucide-react"
-import {Post} from "@/types"
+import { Post } from "@/types"
 
 const POSTS_PER_PAGE = 5;
 
 export default function Feed({ postData, offset }: { postData: Post[], offset: number }) {
-  const [isCommentDrawerOpen, setIsCommentDrawerOpen] = useState(false);
+  const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(null);
   const [posts, setPosts] = useState<Post[]>(postData);
   const [showUploadPage, setShowUploadPage] = useState(false)
   // Lock for liking posts
@@ -26,36 +26,40 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   const containerRef = useRef<HTMLDivElement>(null)
 
   const [currentPostIndex, setCurrentPostIndex] = useState(0); // how deep into the feed you are
-  
+
   const router = useRouter();
 
   const fetchMorePosts = async () => {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint?limit=${POSTS_PER_PAGE}&offset=${offset + posts.length}`);
-    const data = await res.json();
-    const newPosts: Post[] = data.posts;
-    if (newPosts) {
-      setPosts(prev => [...prev, ...newPosts]);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint?limit=${POSTS_PER_PAGE}&offset=${offset + posts.length}`);
+      const data = await res.json();
+      const newPosts: Post[] = data.posts;
+      if (newPosts) {
+        setPosts(prev => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const filteredNewPosts = newPosts.filter(p => !existingIds.has(p.id));
+          return [...prev, ...filteredNewPosts];
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch more posts', error);
     }
-  } catch (error) {
-    console.error('Failed to fetch more posts', error);
-  }
-};
+  };
 
   const handleScroll = () => {
-  if (containerRef.current) {
-    const scrollTop = containerRef.current.scrollTop;
-    const containerHeight = containerRef.current.clientHeight;
-    const newIndex = Math.round(scrollTop / containerHeight);
-    setCurrentPostIndex(newIndex);
-  }
-};
+    if (containerRef.current) {
+      const scrollTop = containerRef.current.scrollTop;
+      const containerHeight = containerRef.current.clientHeight;
+      const newIndex = Math.round(scrollTop / containerHeight);
+      setCurrentPostIndex(newIndex);
+    }
+  };
 
   useEffect(() => {
-  if (currentPostIndex === posts.length - 4) { // loads posts in advance (instead of at the bottom)
-    fetchMorePosts();
-  }
-}, [fetchMorePosts, posts.length, currentPostIndex]);
+    if (currentPostIndex === posts.length - 4) { // loads posts in advance (instead of at the bottom)
+      fetchMorePosts();
+    }
+  }, [fetchMorePosts, posts.length, currentPostIndex]);
 
 
 
@@ -90,7 +94,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return
 
-    const distance = touchStart - touchEnd 
+    const distance = touchStart - touchEnd
     const isLeftSwipe = distance < 0
     const isRightSwipe = distance > 0
 
@@ -113,7 +117,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   // Reference to the ImageUpload component
   const imageUploadRef = useRef<ImageUploadHandle>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  
+
   // Handler for upload button click
   const handleUpload = () => {
     // Call the file selection trigger in ImageUpload component
@@ -121,19 +125,16 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
       imageUploadRef.current.triggerFileSelect();
     }
   }
-  
+
   // Handler for when upload completes successfully
   const handleUploadComplete = (imageUrl: string) => {
     setUploadError(null);
-    setShowUploadPage(false);
-    if (imageUrl) {
-      sessionStorage.setItem("previewImageData", imageUrl);
-    }
-    console.log("Image URL for preview:", imageUrl);
-    router.push("/preview");
-    console.log("Navigating to /preview");
+    setShowUploadPage(false); // Return to feed after successful upload
+
+    // Optionally refresh posts
+    fetchMorePosts();
   }
-  
+
   // Handler for upload errors
   const handleUploadError = (error: string) => {
     setUploadError(error);
@@ -146,68 +147,68 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   const { user } = useUser();
   const handleLike = async (post_id: string) => {
     // If user is not signed in
-    if (!user){
-        alert("Please sign in to like posts!");
-        return;
+    if (!user) {
+      alert("Please sign in to like posts!");
+      return;
     }
     // Prohibits the user from liking the same post multiple times
     if (likeInProgress === post_id) {
-        return;
+      return;
     }
-    
+
     // Lock so there's only a single request
     setLikeInProgress(post_id);
 
     const userId = user.id;
     const post = posts.find((p) => p.id === post_id);
     if (!post) {
-        setLikeInProgress(null);
-        return;
+      setLikeInProgress(null);
+      return;
     }
 
     const hasLiked = post.likes.includes(user?.id);
 
     // Make an API call to update the likes array for the post
     try {
-        // Determines whether to like/remove like from the post
-        await fetch(`/api/testendpoint`, {
+      // Determines whether to like/remove like from the post
+      await fetch(`/api/testendpoint`, {
         method: hasLiked ? 'DELETE' : 'POST',
         headers: {
-            'Content-Type': 'application/json',
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ post_id, userId }), // send ID in body, not path
-        });
-        
+      });
 
-        // Update the likes array for the specific post in the client-side state
-        setPosts((prevPosts) =>
+
+      // Update the likes array for the specific post in the client-side state
+      setPosts((prevPosts) =>
         prevPosts.map((post) => {
-            if (post.id === post_id) {
+          if (post.id === post_id) {
             if (hasLiked) {
-                // Remove the user ID from the likes array
-                return {
+              // Remove the user ID from the likes array
+              return {
                 ...post,
                 likes: post.likes.filter((id) => id !== userId),
-                };
+              };
             } else {
-                // Add the user ID to the likes array
-                return {
+              // Add the user ID to the likes array
+              return {
                 ...post,
                 likes: [...post.likes, userId],
-                };
+              };
             }
-            } else {
+          } else {
             // Return the post unchanged
             return post;
-            }
+          }
         })
-        );
+      );
     }
     catch (error) {
-        console.error("Error liking post:", error);
+      console.error("Error liking post:", error);
     } finally {
-        // Unlock
-        setLikeInProgress(null);
+      // Unlock
+      setLikeInProgress(null);
     }
   };
 
@@ -232,9 +233,10 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
             onScroll={handleScroll}
           >
             {posts.map((post, index) => (
-              <div key={post.id} className="relative h-full w-full snap-start snap-always">
+              <div key={post.id} className="relative h-full w-full snap-start snap-alway">
                 <div className="absolute inset-0">
                   <Image
+                    data-testid='Post image'
                     src={`data:${post.image_data.startsWith('/9j/') ? 'image/jpeg' : 'image/png'};base64,${post.image_data}` || "/placeholder.svg"}
                     alt={'alt'}
                     fill
@@ -261,37 +263,60 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
 
                   {/* Action buttons */}
                   <div className="flex flex-col gap-4 items-center">
-                  {/* Upload button - only visible on md and up */}
+                    {/* Upload button - only visible on md and up */}
                     <button
-                      onClick={() => {setShowUploadPage(true)}}
+                      aria-label="Upload page button"
+                      onClick={() => { setShowUploadPage(true) }}
                       className="flex flex-col items-center"
-                      >
-                        <Upload className="w-7 h-7 text-white" />
-                    </button>
-                    <button aria-label="Like button" onClick={() =>{
-                        if (user){
-                            handleLike(post.id)
-                        }
-                        else {
-                            router.push("/login")
-                        }
-                        }}
-                        className="flex flex-col items-center"
                     >
-                        <Heart
-                            className={`w-7 h-7 transition-colors duration-200 ease-in-out  ${
-                            user?.id && post.likes.includes(user.id) ? "text-red-500 fill-red-500" : "text-white"
-                            }`}
-                        />
+                      <Upload className="w-7 h-7 text-white" />
+                    </button>
+                    <button aria-label="Like button" onClick={() => {
+                      if (user) {
+                        handleLike(post.id)
+                      }
+                      else {
+                        router.push("/login")
+                      }
+                    }}
+                      className="flex flex-col items-center"
+                    >
+                      <Heart
+                        className={`w-7 h-7 transition-colors duration-200 ease-in-out  ${user?.id && post.likes.includes(user.id) ? "text-red-500 fill-red-500" : "text-white"
+                          }`}
+                      />
                       <span className="text-white text-xs">{post.likes.length}</span>
                     </button>
-                    <button aria-label="Comment button" onClick={() => setIsCommentDrawerOpen(true)} className="flex flex-col items-center">
+                    <button
+                      aria-label="Comment button"
+                      onClick={() => setActiveCommentPostId(post.id)}
+                      className="flex flex-col items-center"
+                    >
                       <MessageCircle className="w-7 h-7 text-white" />
-                      <span className="text-white text-xs">{post.comments.length}</span>
+                      <span className="text-white text-xs">{post.comment_count}</span>
                     </button>
-                    <CommentDrawer open={isCommentDrawerOpen} onOpenChange={setIsCommentDrawerOpen} postId={post.id}/>
 
-                    <button onClick={() => {}} className="flex flex-col items-center">
+                    {activeCommentPostId === post.id && (
+                      <CommentDrawer
+                      open={true}
+                      onOpenChange={() => setActiveCommentPostId(null)}
+                      postId={post.id}
+                      onCommentChanged={() => {
+                        setPosts((prev) =>
+                          prev.map((p) =>
+                            p.id === post.id
+                              ? {
+                                  ...p,
+                                  comment_count: Math.max(0, (p.comment_count || 0) - 1 + 2),
+                                }
+                              : p
+                          )
+                        );
+                      }}
+                    />
+                    )}
+
+                    <button onClick={() => { }} className="flex flex-col items-center">
                       <Share2 className="w-7 h-7 text-white" />
                     </button>
                   </div>
@@ -303,7 +328,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
 
         {/* Upload Page */}
         <div className="w-1/2 h-full bg-black flex flex-col items-center justify-center relative">
-          <button onClick={goBackToFeed} className="absolute top-4 left-4 text-white p-2">
+          <button aria-label="Return button" onClick={goBackToFeed} className="absolute top-4 left-4 text-white p-2">
             <ArrowLeft className="w-6 h-6" />
           </button>
 
@@ -318,10 +343,10 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
               Upload
             </button>
             {uploadError && <p className="text-red-500 mt-4">{uploadError}</p>}
-            
+
             {/* Hidden ImageUpload component - only handles file selection and upload */}
             <div style={{ display: 'none' }}>
-              <ImageUpload 
+              <ImageUpload
                 ref={imageUploadRef}
                 onUploadComplete={handleUploadComplete}
                 onUploadError={handleUploadError}
