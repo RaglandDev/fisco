@@ -4,7 +4,7 @@ import { useAuth } from '@clerk/nextjs'; // Importing the useAuth hook
 import Link from 'next/link';
 import { Home, User, Menu, LogIn, LogOut } from 'lucide-react'; // Added LogOut icon for logout button
 
-export default function BottomNavBar() {
+export default function DropDownMenu() {
   const { userId, signOut } = useAuth(); // Get signOut from useAuth
   const [isOpen, setIsOpen] = useState(false); // State to toggle the menu
 
@@ -16,12 +16,12 @@ export default function BottomNavBar() {
   };
 
   return (
-    <div className="fixed top-4 left-4 z-50">
+    <div className="fixed top-1 left-1 z-50">
       {/* Hamburger Menu Button */}
       <button
         onClick={toggleMenu}
         aria-label="Toggle menu"
-        className="text-white p-4 cursor-pointer"
+        className="text-white p-2 cursor-pointer"
       >
         <Menu className="w-6 h-6" />
       </button>
@@ -31,14 +31,14 @@ export default function BottomNavBar() {
         <div className="flex flex-col items-center gap-2 mt-2 z-50 pointer-events-auto">
           {/* Home Button */}
           <Link href="/">
-            <button className="flex items-center gap-2 p-4 w-48 text-left text-white">
+            <button className="flex items-center gap-2 p-2 w-48 text-left text-white">
               <Home className="w-6 h-6" /> Home
             </button>
           </Link>
 
           {/* Profile Button - Conditional redirect */}
           <Link href={userId ? "/profile" : "/login"}>
-            <button className="flex items-center gap-2 p-4 w-48 text-left text-white">
+            <button className="flex items-center gap-2 p-2 w-48 text-left text-white">
               <User className="w-6 h-6" /> Profile
             </button>
           </Link>
@@ -48,7 +48,7 @@ export default function BottomNavBar() {
             <Link
               href="/login"
               aria-label="Login button"
-              className="flex items-center gap-2 p-4 w-48 text-left text-white"
+              className="flex items-center gap-2 p-2 w-48 text-left text-white"
             >
               <LogIn className="w-6 h-6" /> Login
             </Link>
@@ -56,7 +56,7 @@ export default function BottomNavBar() {
             <button
               onClick={handleLogout} // Logout functionality using signOut
               aria-label="Sign out button"
-              className="flex items-center gap-2 p-4 w-48 text-left text-white"
+              className="flex items-center gap-2 p-2 w-48 text-left text-white"
             >
               <LogOut className="w-6 h-6" /> Logout {/* LogOut icon */}
             </button>
