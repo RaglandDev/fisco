@@ -7,6 +7,7 @@ export type Post = {
     created_at: Date; 
     likes: Array<string>;
     comments: Array<string>;
+    saves: Array<string>;
     image_data: string;
     user_data?: string;
     first_name: string | "Unknown";
