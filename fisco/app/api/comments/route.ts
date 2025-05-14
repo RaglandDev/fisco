@@ -50,11 +50,11 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = (await sql`
-  SELECT id, comment_text, created_at, user_id
-  FROM comments
-  WHERE post_id = ${postId}
-  ORDER BY created_at ASC;
-`) as CommentRow[];
+      SELECT id, comment_text, created_at, user_id
+      FROM comments
+      WHERE post_id = ${postId}
+      ORDER BY created_at ASC;
+    `) as CommentRow[];
 
     const serialized = result.map((row) => ({
       id: row.id,
@@ -64,6 +64,48 @@ export async function GET(req: NextRequest) {
     }));
 
     return NextResponse.json(serialized);
+  } catch (err) {
+    return NextResponse.json({ error: "DB error", detail: String(err) }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const commentId = searchParams.get("id");
+  const clerkUserId = searchParams.get("clerkUserId");
+
+  if (!commentId || !clerkUserId) {
+    return NextResponse.json({ error: "Missing comment ID or user ID" }, { status: 400 });
+  }
+
+  try {
+    const userResult = await sql`
+      SELECT id FROM users WHERE clerk_user_id = ${clerkUserId}
+    `;
+
+    if (userResult.length === 0) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const userId = userResult[0].id;
+
+    const commentResult = await sql`
+      SELECT user_id FROM comments WHERE id = ${commentId}
+    `;
+
+    if (commentResult.length === 0) {
+      return NextResponse.json({ error: "Comment not found" }, { status: 404 });
+    }
+
+    if (commentResult[0].user_id !== userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    await sql`
+      DELETE FROM comments WHERE id = ${commentId}
+    `;
+
+    return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json({ error: "DB error", detail: String(err) }, { status: 500 });
   }
