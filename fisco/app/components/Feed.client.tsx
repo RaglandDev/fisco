@@ -17,7 +17,9 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   const [showUploadPage, setShowUploadPage] = useState(false)
   // Lock for liking posts
   const [likeInProgress, setLikeInProgress] = useState<string | null>(null);
-
+  
+  // Lock for saving posts
+  const [saveInProgress, setSaveInProgress] = useState<string | null>(null);
 
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
@@ -220,6 +222,72 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
     } finally {
       // Unlock
       setLikeInProgress(null);
+    }
+  };
+  const handleSave = async (post_id: string) => {
+    // If user is not signed in
+    if (!user) {
+      alert("Please sign in to like posts!");
+      return;
+    }
+    // Prohibits the user from liking the same post multiple times
+    if (saveInProgress === post_id) {
+      return;
+    }
+
+    // Lock so there's only a single request
+    setSaveInProgress(post_id);
+
+    const userId = user.id;
+    const post = posts.find((p) => p.id === post_id);
+    if (!post) {
+      setSaveInProgress(null);
+      return;
+    }
+
+    const hasSaved = post.saves.includes(user?.id);
+
+    // Make an API call to update the likes array for the post
+    try {
+      // Determines whether to like/remove like from the post
+      await fetch(`/api/profile`, {
+        method: hasSaved ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ post_id, userId }), // send ID in body, not path
+      });
+
+
+      // Update the likes array for the specific post in the client-side state
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (post.id === post_id) {
+            if (hasSaved) {
+              // Remove the user ID from the likes array
+              return {
+                ...post,
+                saves: post.saves.filter((id) => id !== userId),
+              };
+            } else {
+              // Add the user ID to the likes array
+              return {
+                ...post,
+                saves: [...post.saves, userId],
+              };
+            }
+          } else {
+            // Return the post unchanged
+            return post;
+          }
+        })
+      );
+    }
+    catch (error) {
+      console.error("Error saving post:", error);
+    } finally {
+      // Unlock
+      setSaveInProgress(null);
     }
   };
 
