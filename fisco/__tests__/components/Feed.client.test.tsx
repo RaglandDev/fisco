@@ -80,8 +80,8 @@ afterAll(() => server.close());
 
 it('renders without crashing', () => {
   const postData = [
-    { id: '1', fk_image_id: 'img-123', fk_author_id: 'author-1', likes: [], image_data: 'base64img', first_name: 'Test Item 1', created_at: '2023-01-01T00:00:00Z', comments: [], last_name: 'LastName1' },
-    { id: '2', fk_image_id: 'img-124', fk_author_id: 'author-2', likes: [], image_data: 'base64img', first_name: 'Test Item 2', created_at: '2023-01-02T00:00:00Z', comments: [], last_name: 'LastName2' },
+    { id: '1', fk_image_id: 'img-123', fk_author_id: 'author-1', likes: [], image_data: 'base64img', first_name: 'Test Item 1', created_at: '2023-01-01T00:00:00Z', comments: [], last_name: 'LastName1', saves: [] },
+    { id: '2', fk_image_id: 'img-124', fk_author_id: 'author-2', likes: [], image_data: 'base64img', first_name: 'Test Item 2', created_at: '2023-01-02T00:00:00Z', comments: [], last_name: 'LastName2', saves: [] },
   ];
   
   const { container } = render(
@@ -102,7 +102,7 @@ beforeEach(() => {
 
 it('uploads image and navigates to preview when upload button is clicked', async () => {
   const postData = [
-    { id: '1', fk_image_id: 'img-123', fk_author_id: 'author-1', likes: [], image_data: 'base64img', first_name: 'Test Item 1', created_at: new Date('2023-01-01T00:00:00Z'), comments: [], last_name: 'LastName1', comment_count: 0 },
+    { id: '1', fk_image_id: 'img-123', fk_author_id: 'author-1', likes: [], image_data: 'base64img', first_name: 'Test Item 1', created_at: new Date('2023-01-01T00:00:00Z'), comments: [], last_name: 'LastName1', comment_count: 0, saves: [] },
   ];
 
   render(
@@ -124,11 +124,12 @@ it('uploads image and navigates to preview when upload button is clicked', async
 
 // Remove empty test that doesn't assert anything
 
+
 // Remove empty test that doesn't assert anything
 
 it('handles scroll events', async () => {
   const postData = [
-    { id: '1', fk_image_id: 'img-123', fk_author_id: 'author-1', likes: [], image_data: 'base64img', first_name: 'Test Item 1', created_at: '2023-01-01T00:00:00Z', comments: [], last_name: 'LastName1' },
+    { id: '1', fk_image_id: 'img-123', fk_author_id: 'author-1', likes: [], image_data: 'base64img', first_name: 'Test Item 1', created_at: '2023-01-01T00:00:00Z', comments: [], last_name: 'LastName1', saves: []},
   ];
 
   render(
