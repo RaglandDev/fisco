@@ -6,7 +6,7 @@ import CommentDrawer from "@/components/CommentDrawer.client"
 import Image from "next/image"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
-import { Heart, MessageCircle, Bookmark, Share2, User, Upload, ArrowLeft } from "lucide-react"
+import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft, Bookmark } from "lucide-react"
 import { Post } from "@/types"
 
 const POSTS_PER_PAGE = 5;
@@ -341,7 +341,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                   </div>
 
                   {/* Action buttons */}
-                  <div className="flex flex-col gap-4 items-center">
+                  <div className="flex flex-col gap-3 items-center">
                     {/* Upload button - only visible on md and up */}
                     <button
                       aria-label="Upload button"
@@ -399,6 +399,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                         if (user) {
                           // Replace with actual save functionality
                           handleSave(post.id);
+
                         } else {
                           router.push("/login");
                         }
@@ -409,6 +410,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                           }`} /> {/* Bookmark icon */}
                     </button>
 
+                    
                     <button onClick={() => { }} className="flex flex-col items-center">
                       <Share2 className="w-7 h-7 text-white" />
                     </button>
@@ -457,3 +459,4 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
     </div>
   )
 }
+
