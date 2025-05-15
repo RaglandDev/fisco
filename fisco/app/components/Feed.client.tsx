@@ -6,7 +6,7 @@ import CommentDrawer from "@/components/CommentDrawer.client"
 import Image from "next/image"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
-import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft } from "lucide-react"
+import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft, Bookmark } from "lucide-react"
 import { Post } from "@/types"
 
 const POSTS_PER_PAGE = 5;
@@ -273,7 +273,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                   </div>
 
                   {/* Action buttons */}
-                  <div className="flex flex-col gap-4 items-center">
+                  <div className="flex flex-col gap-3 items-center">
                     {/* Upload button - only visible on md and up */}
                     <button
                       aria-label="Upload button"
@@ -326,7 +326,23 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                       }}
                     />
                     )}
+                    {/* Save Button with Lucide Bookmark Icon */}
+                    <button 
+                      aria-label="Save button"
+                      onClick={() => {
+                        if (user) {
+                          // Replace with actual save functionality
+                          alert("Post saved!");
+                        } else {
+                          router.push("/login");
+                        }
+                      }}
+                      className="flex flex-col items-center"
+                    >
+                      <Bookmark className="w-7 h-7 text-white" /> {/* Bookmark icon */}
+                    </button>
 
+                    
                     <button onClick={() => { }} className="flex flex-col items-center">
                       <Share2 className="w-7 h-7 text-white" />
                     </button>
@@ -375,3 +391,4 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
     </div>
   )
 }
+
