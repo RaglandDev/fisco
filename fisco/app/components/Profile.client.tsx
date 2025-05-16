@@ -10,6 +10,7 @@ const Profile: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+
   const [userData, setUserData] = useState<{
     first_name: string;
     last_name: string;
@@ -85,6 +86,7 @@ const Profile: React.FC = () => {
       alert("Failed to update profile photo.");
     }
   };
+
 
   if (error) return <div>{error}</div>;
   if (!userData && isLoaded) return <div>Loading...</div>;
