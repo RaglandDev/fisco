@@ -72,8 +72,8 @@ export async function POST(req: Request) {
   try {
     await sql`
           UPDATE posts
-          SET likes = likes || to_jsonb(${userId}::text)
-          WHERE id = ${post_id} AND NOT (likes @> to_jsonb(ARRAY[${userId}::text]))
+          SET saves = saves || to_jsonb(${userId}::text)
+          WHERE id = ${post_id} AND NOT (saves @> to_jsonb(ARRAY[${userId}::text]))
         `;
 
     await sql`
@@ -104,7 +104,7 @@ export async function DELETE(req: Request) {
   try {
     await sql`
           UPDATE posts
-          SET likes = likes - ${userId}::text
+          SET saves = saves - ${userId}::text
           WHERE id = ${post_id}::uuid
         `;
 
