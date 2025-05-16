@@ -539,7 +539,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                     const data = await res.json();
                     alert(data.error || "Failed to delete post");
                   }
-                } catch (err) {
+                } catch (_err) {
                   alert("Failed to delete post");
                 } finally {
                   setDeleteDialogOpen(false);
