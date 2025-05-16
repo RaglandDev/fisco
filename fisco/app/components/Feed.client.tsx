@@ -3,10 +3,20 @@
 import ImageUpload, { ImageUploadHandle } from "@/components/ImageUpload.client"
 import { useState, useRef, useEffect, type TouchEvent } from "react"
 import CommentDrawer from "@/components/CommentDrawer.client"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog"
 import Image from "next/image"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
-import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft, Bookmark } from "lucide-react"
+import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft, Bookmark, Trash2 } from "lucide-react"
 import { Post } from "@/types"
 
 const POSTS_PER_PAGE = 5;
@@ -21,6 +31,9 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   // Lock for saving posts
   const [saveInProgress, setSaveInProgress] = useState<string | null>(null);
 
+  // Store the database UUID for the current user
+  const [userDbId, setUserDbId] = useState<string | null>(null);
+
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
 
@@ -28,6 +41,18 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   const containerRef = useRef<HTMLDivElement>(null)
 
   const [currentPostIndex, setCurrentPostIndex] = useState(0); // how deep into the feed you are
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
+
+  const handleDelete = (postId: string) => {
+    console.log('Delete button clicked for post:', postId);
+    setPostToDelete(postId);
+    setDeleteDialogOpen(true);
+    setTimeout(() => {
+      console.log('deleteDialogOpen after click:', deleteDialogOpen);
+    }, 100);
+  };
 
   const router = useRouter();
 
@@ -158,6 +183,28 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   }
 
   const { user } = useUser();
+
+  // Fetch the user's database UUID when logged in
+  useEffect(() => {
+    const fetchUserDbId = async () => {
+      if (user?.id) {
+        try {
+          const response = await fetch(`/api/users/me?clerkUserId=${user.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.internalUserId) {
+              setUserDbId(data.internalUserId);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching user DB ID:", error);
+        }
+      }
+    };
+
+    fetchUserDbId();
+  }, [user?.id]);
+
   const handleLike = async (post_id: string) => {
     // If user is not signed in
     if (!user) {
@@ -414,6 +461,21 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                     <button onClick={() => { }} className="flex flex-col items-center">
                       <Share2 className="w-7 h-7 text-white" />
                     </button>
+
+                    {/* Delete button only visible for posts made by the current user */}
+                    {user?.id && (
+                      <>
+                      {userDbId && post.fk_author_id === userDbId && (
+                        <button 
+                          aria-label="Delete button" 
+                          onClick={() => handleDelete(post.id)}
+                          className="flex flex-col items-center mt-3"
+                        >
+                          <Trash2 className="w-7 h-7 text-white hover:text-red-500 transition-colors duration-200 ease-in-out" />
+                        </button>
+                      )}
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -450,6 +512,46 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
           </div>
         </div>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-black text-white border border-gray-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete Post</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-300">
+              Are you sure you want to delete this post? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-gray-800 text-white border border-gray-700 hover:bg-gray-700">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white border border-gray-700"
+              onClick={async () => {
+                if (!postToDelete) return;
+                try {
+                  const res = await fetch("/api/posts", {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ postId: postToDelete }),
+                  });
+                  if (res.ok) {
+                    setPosts(posts => posts.filter(post => post.id !== postToDelete));
+                  } else {
+                    const data = await res.json();
+                    alert(data.error || "Failed to delete post");
+                  }
+                } catch (err) {
+                  alert("Failed to delete post");
+                } finally {
+                  setDeleteDialogOpen(false);
+                  setPostToDelete(null);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <style jsx global>{`
     ::-webkit-scrollbar {

@@ -33,3 +33,26 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to create post" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const { postId } = await req.json();
+    if (!postId) {
+      return NextResponse.json({ error: "Missing post id" }, { status: 400 });
+    }
+    // First, get the image id associated with this post
+    const imageResult = await sql`SELECT fk_image_id FROM posts WHERE id = ${postId}`;
+    const imageId = imageResult[0]?.fk_image_id;
+    if (!imageId) {
+      return NextResponse.json({ error: "No associated image found" }, { status: 404 });
+    }
+    // Delete the post
+    await sql`DELETE FROM posts WHERE id = ${postId}`;
+    // Delete the image
+    await sql`DELETE FROM images WHERE id = ${imageId}`;
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Delete post error:", error);
+    return NextResponse.json({ error: "Failed to delete post" }, { status: 500 });
+  }
+}
