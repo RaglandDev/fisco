@@ -118,7 +118,6 @@ const Profile: React.FC = () => {
             id="profile-file-input"
             type="file"
             accept="image/*"
-            capture="environment"
             style={{ display: "none" }}
             ref={fileInputRef}
             onChange={handleFileChange}
