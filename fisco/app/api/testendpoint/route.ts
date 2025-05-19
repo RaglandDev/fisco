@@ -22,7 +22,7 @@ export async function GET(req: Request) {
       ) AS comment_count
     FROM posts
     LEFT JOIN images ON posts.fk_image_id = images.id
-    LEFT JOIN users ON posts.fk_author_id::text = users.clerk_user_id
+    LEFT JOIN users ON posts.fk_author_id::text = users.id::text
     ORDER BY posts.created_at DESC
     LIMIT ${limit} OFFSET ${offset}
   `;

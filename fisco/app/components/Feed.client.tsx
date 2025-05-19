@@ -18,6 +18,7 @@ import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft, Bookmark, Trash2, Tag } from "lucide-react"
 import type { Post } from "@/types"
+import Link from 'next/link';
 
 
 // Helper function to determine label position based on pin position
@@ -472,9 +473,14 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
                       <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
                         <User className="w-5 h-5 text-gray-600" />
                       </div>
-                      <span className="font-semibold">
-                        @{post.first_name} {post.last_name}
-                      </span>
+                      {/* Profile Button with Conditional Redirect */}
+                      <Link href={user ? "/profile" : "/login"}>
+                        <button 
+                          className="font-semibold text-white bg-transparent border-none cursor-pointer"
+                        >
+                          @{post.first_name || 'Unknown'} {post.last_name || 'User'}
+                        </button>
+                      </Link>
                     </div>
                     <p className="text-sm">I created this post at {post.created_at.toLocaleString()}!</p>
                   </div>
