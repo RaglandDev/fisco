@@ -1,4 +1,9 @@
 // global types go here
+interface Tag {
+    x: number,
+    y: number,
+    label: string
+}
 
 export type Post = {
     id: string;
@@ -14,4 +19,5 @@ export type Post = {
     last_name: string | "Unknown";
     email?: string;
     comment_count: number;
+    tags: Array<Tag>
 };

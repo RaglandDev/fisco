@@ -1,6 +1,6 @@
 "use client"
 
-import ImageUpload, { ImageUploadHandle } from "@/components/ImageUpload.client"
+import ImageUpload, { type ImageUploadHandle } from "@/components/ImageUpload.client"
 import { useState, useRef, useEffect, type TouchEvent } from "react"
 import CommentDrawer from "@/components/CommentDrawer.client"
 import {
@@ -16,23 +16,61 @@ import {
 import Image from "next/image"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
-import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft, Bookmark, Trash2 } from "lucide-react"
-import { Post } from "@/types"
+import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft, Bookmark, Trash2, Tag } from "lucide-react"
+import type { Post } from "@/types"
 
-const POSTS_PER_PAGE = 5;
 
-export default function Feed({ postData, offset }: { postData: Post[], offset: number }) {
-  const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(null);
-  const [posts, setPosts] = useState<Post[]>(postData);
+// Helper function to determine label position based on pin position
+const getLabelPosition = (x: number, y: number) => {
+  // Threshold values for edges (as percentage)
+  const topThreshold = 0.15 // 15% from top
+  const leftThreshold = 0.15 // 15% from left
+  const rightThreshold = 0.85 // 15% from right
+
+  // Default position (above the pin)
+  const position = {
+    top: "-top-10",
+    left: "left-1/2",
+    transform: "-translate-x-1/2",
+    origin: "",
+  }
+
+  // If pin is near the top, place label below
+  if (y < topThreshold) {
+    position.top = "top-10"
+  }
+
+  // If pin is near the left edge, align label to start from pin
+  if (x < leftThreshold) {
+    position.left = "left-0"
+    position.transform = "translate-x-0"
+    position.origin = "origin-left"
+  }
+
+  // If pin is near the right edge, align label to end at pin
+  if (x > rightThreshold) {
+    position.left = "right-0"
+    position.transform = "translate-x-0"
+    position.origin = "origin-right"
+  }
+
+  return position
+}
+
+const POSTS_PER_PAGE = 5
+
+export default function Feed({ postData, offset }: { postData: Post[]; offset: number }) {
+  const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(null)
+  const [posts, setPosts] = useState<Post[]>(postData)
   const [showUploadPage, setShowUploadPage] = useState(false)
   // Lock for liking posts
-  const [likeInProgress, setLikeInProgress] = useState<string | null>(null);
-  
+  const [likeInProgress, setLikeInProgress] = useState<string | null>(null)
+
   // Lock for saving posts
-  const [saveInProgress, setSaveInProgress] = useState<string | null>(null);
+  const [saveInProgress, setSaveInProgress] = useState<string | null>(null)
 
   // Store the database UUID for the current user
-  const [userDbId, setUserDbId] = useState<string | null>(null);
+  const [userDbId, setUserDbId] = useState<string | null>(null)
 
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
@@ -40,56 +78,64 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   const [swipeTransition, setSwipeTransition] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const [currentPostIndex, setCurrentPostIndex] = useState(0); // how deep into the feed you are
+  const [currentPostIndex, setCurrentPostIndex] = useState(0) // how deep into the feed you are
 
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [postToDelete, setPostToDelete] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [postToDelete, setPostToDelete] = useState<string | null>(null)
 
   const handleDelete = (postId: string) => {
-    console.log('Delete button clicked for post:', postId);
-    setPostToDelete(postId);
-    setDeleteDialogOpen(true);
+    console.log("Delete button clicked for post:", postId)
+    setPostToDelete(postId)
+    setDeleteDialogOpen(true)
     setTimeout(() => {
-      console.log('deleteDialogOpen after click:', deleteDialogOpen);
-    }, 100);
-  };
+      console.log("deleteDialogOpen after click:", deleteDialogOpen)
+    }, 100)
+  }
 
-  const router = useRouter();
+  const router = useRouter()
 
   const fetchMorePosts = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint?limit=${POSTS_PER_PAGE}&offset=${offset + posts.length}`);
-      const data = await res.json();
-      const newPosts: Post[] = data.posts;
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint?limit=${POSTS_PER_PAGE}&offset=${offset + posts.length}`,
+      )
+      const data = await res.json()
+      const newPosts: Post[] = data.posts
       if (newPosts) {
-        setPosts(prev => {
-          const existingIds = new Set(prev.map(p => p.id));
-          const filteredNewPosts = newPosts.filter(p => !existingIds.has(p.id));
-          return [...prev, ...filteredNewPosts];
-        });
+        setPosts((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id))
+          const filteredNewPosts = newPosts.filter((p) => !existingIds.has(p.id))
+          return [...prev, ...filteredNewPosts]
+        })
       }
     } catch (error) {
-      console.error('Failed to fetch more posts', error);
+      console.error("Failed to fetch more posts", error)
     }
-  };
+  }
 
   const handleScroll = () => {
     if (containerRef.current) {
-      const scrollTop = containerRef.current.scrollTop;
-      const containerHeight = containerRef.current.clientHeight;
-      const newIndex = Math.round(scrollTop / containerHeight);
-      setCurrentPostIndex(newIndex);
+      const scrollTop = containerRef.current.scrollTop
+      const containerHeight = containerRef.current.clientHeight
+      const newIndex = Math.round(scrollTop / containerHeight)
+      setCurrentPostIndex(newIndex)
+      setTagsVisible(false)
     }
-  };
+  }
+
+  const fetchMorePostsRef = useRef(fetchMorePosts)
+  fetchMorePostsRef.current = fetchMorePosts
 
   useEffect(() => {
-    if (currentPostIndex === posts.length - 4) { // loads posts in advance (instead of at the bottom)
-      fetchMorePosts();
+    const loadMorePosts = async () => {
+      if (currentPostIndex === posts.length - 4) {
+        // loads posts in advance (instead of at the bottom)
+        await fetchMorePostsRef.current()
+      }
     }
-  }, [fetchMorePosts, posts.length, currentPostIndex]);
 
-
-
+    loadMorePosts()
+  }, [posts.length, currentPostIndex])
 
   // Minimum swipe distance required (in px)
   const minSwipeDistance = 30
@@ -115,7 +161,6 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
         setSwipeTransition(transitionPercentage)
       }
     }
-
   }
 
   const onTouchEnd = () => {
@@ -125,7 +170,7 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
     const isLeftSwipe = distance < 0
     const isRightSwipe = distance > 0
 
-    // Detect right swipe on feed page 
+    // Detect right swipe on feed page
     if (isRightSwipe && !showUploadPage && Math.abs(distance) > minSwipeDistance) {
       setShowUploadPage(true)
     }
@@ -142,103 +187,103 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
   }
 
   // Reference to the ImageUpload component
-  const imageUploadRef = useRef<ImageUploadHandle>(null);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const imageUploadRef = useRef<ImageUploadHandle>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [tagsVisible, setTagsVisible] = useState(false)
 
   // Handler for upload button click
   const handleUpload = () => {
     // Call the file selection trigger in ImageUpload component
     if (imageUploadRef.current) {
-      imageUploadRef.current.triggerFileSelect();
+      imageUploadRef.current.triggerFileSelect()
     }
   }
 
   // Handler for when upload completes successfully
   const handleUploadComplete = (imageUrl: string) => {
-    setUploadError(null);
-    setShowUploadPage(false); // Hide upload page
-    
+    setUploadError(null)
+    setShowUploadPage(false) // Hide upload page
+
     // Save image data to sessionStorage for preview page
-    sessionStorage.setItem("previewImageData", imageUrl);
-    
+    sessionStorage.setItem("previewImageData", imageUrl)
+
     // Extract mime type from data URL if possible
-    let mime = null;
+    let mime = null
     if (imageUrl.startsWith("data:")) {
-      const match = imageUrl.match(/^data:(.*?);base64,/);
-      mime = match ? match[1] : null;
+      const match = imageUrl.match(/^data:(.*?);base64,/)
+      mime = match ? match[1] : null
     }
-    if (mime) sessionStorage.setItem("previewImageType", mime);
-    
+    if (mime) sessionStorage.setItem("previewImageType", mime)
+
     // Navigate to preview page
-    router.push("/preview");
+    router.push("/preview")
   }
 
   // Handler for upload errors
   const handleUploadError = (error: string) => {
-    setUploadError(error);
+    setUploadError(error)
   }
 
   const goBackToFeed = () => {
     setShowUploadPage(false)
   }
 
-  const { user } = useUser();
+  const { user } = useUser()
 
   // Fetch the user's database UUID when logged in
   useEffect(() => {
     const fetchUserDbId = async () => {
       if (user?.id) {
         try {
-          const response = await fetch(`/api/users/me?clerkUserId=${user.id}`);
+          const response = await fetch(`/api/users/me?clerkUserId=${user.id}`)
           if (response.ok) {
-            const data = await response.json();
+            const data = await response.json()
             if (data.internalUserId) {
-              setUserDbId(data.internalUserId);
+              setUserDbId(data.internalUserId)
             }
           }
         } catch (error) {
-          console.error("Error fetching user DB ID:", error);
+          console.error("Error fetching user DB ID:", error)
         }
       }
-    };
+    }
 
-    fetchUserDbId();
-  }, [user?.id]);
+    fetchUserDbId()
+  }, [user?.id])
 
   const handleLike = async (post_id: string) => {
     // If user is not signed in
     if (!user) {
-      alert("Please sign in to like posts!");
-      return;
+      alert("Please sign in to like posts!")
+      return
     }
     // Prohibits the user from liking the same post multiple times
     if (likeInProgress === post_id) {
-      return;
+      return
     }
 
     // Lock so there's only a single request
-    setLikeInProgress(post_id);
+    setLikeInProgress(post_id)
 
-    const userId = user.id;
-    const post = posts.find((p) => p.id === post_id);
+    const userId = user.id
+    const post = posts.find((p) => p.id === post_id)
     if (!post) {
-      setLikeInProgress(null);
-      return;
+      setLikeInProgress(null)
+      return
     }
 
-    const hasLiked = post.likes.includes(user?.id);
+    const hasLiked = post.likes.includes(user?.id)
 
     // Make an API call to update the likes array for the post
     try {
       // Determines whether to like/remove like from the post
       await fetch(`/api/testendpoint`, {
-        method: hasLiked ? 'DELETE' : 'POST',
+        method: hasLiked ? "DELETE" : "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ post_id, userId }), // send ID in body, not path
-      });
-
+      })
 
       // Update the likes array for the specific post in the client-side state
       setPosts((prevPosts) =>
@@ -249,62 +294,60 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
               return {
                 ...post,
                 likes: post.likes.filter((id) => id !== userId),
-              };
+              }
             } else {
               // Add the user ID to the likes array
               return {
                 ...post,
                 likes: [...post.likes, userId],
-              };
+              }
             }
           } else {
             // Return the post unchanged
-            return post;
+            return post
           }
-        })
-      );
-    }
-    catch (error) {
-      console.error("Error liking post:", error);
+        }),
+      )
+    } catch (error) {
+      console.error("Error liking post:", error)
     } finally {
       // Unlock
-      setLikeInProgress(null);
+      setLikeInProgress(null)
     }
-  };
+  }
   const handleSave = async (post_id: string) => {
     // If user is not signed in
     if (!user) {
-      alert("Please sign in to like posts!");
-      return;
+      alert("Please sign in to like posts!")
+      return
     }
     // Prohibits the user from liking the same post multiple times
     if (saveInProgress === post_id) {
-      return;
+      return
     }
 
     // Lock so there's only a single request
-    setSaveInProgress(post_id);
+    setSaveInProgress(post_id)
 
-    const userId = user.id;
-    const post = posts.find((p) => p.id === post_id);
+    const userId = user.id
+    const post = posts.find((p) => p.id === post_id)
     if (!post) {
-      setSaveInProgress(null);
-      return;
+      setSaveInProgress(null)
+      return
     }
 
-    const hasSaved = post.saves.includes(user?.id);
+    const hasSaved = post.saves.includes(user?.id)
 
     // Make an API call to update the likes array for the post
     try {
       // Determines whether to like/remove like from the post
       await fetch(`/api/profile`, {
-        method: hasSaved ? 'DELETE' : 'POST',
+        method: hasSaved ? "DELETE" : "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ post_id, userId }), // send ID in body, not path
-      });
-
+      })
 
       // Update the likes array for the specific post in the client-side state
       setPosts((prevPosts) =>
@@ -315,28 +358,27 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
               return {
                 ...post,
                 saves: post.saves.filter((id) => id !== userId),
-              };
+              }
             } else {
               // Add the user ID to the likes array
               return {
                 ...post,
                 saves: [...post.saves, userId],
-              };
+              }
             }
           } else {
             // Return the post unchanged
-            return post;
+            return post
           }
-        })
-      );
-    }
-    catch (error) {
-      console.error("Error saving post:", error);
+        }),
+      )
+    } catch (error) {
+      console.error("Error saving post:", error)
     } finally {
       // Unlock
-      setSaveInProgress(null);
+      setSaveInProgress(null)
     }
-  };
+  }
 
   return (
     <div
@@ -362,13 +404,61 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
               <div key={post.id} className="relative h-full w-full snap-start snap-alway">
                 <div className="absolute inset-0">
                   <Image
-                    data-testid='Post image'
-                    src={`data:${post.image_data.startsWith('/9j/') ? 'image/jpeg' : 'image/png'};base64,${post.image_data}` || "/placeholder.svg"}
-                    alt={'alt'}
+                    data-testid="Post image"
+                    src={
+                      `data:${post.image_data.startsWith("/9j/") ? "image/jpeg" : "image/png"};base64,${post.image_data}` ||
+                      "/placeholder.svg"
+                    }
+                    alt={"alt"}
                     fill
                     className="object-contain"
                     priority={index <= 1}
                   />
+
+                  {/* Render tags if they exist with fade transition */}
+                  {post.tags && (
+                    <>
+                      {(() => {
+                        try {
+                          // Parse the tag data
+
+                          return post.tags.map((tag, tagIndex) => {
+                            // Get dynamic position for label based on tag position
+                            const labelPosition = getLabelPosition(tag.x, tag.y)
+
+                            return (
+                              <div
+                                id={`post tag ${tagIndex}`}
+                                key={tagIndex}
+                                className={`absolute z-20 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 ease-in-out ${tagsVisible ? "opacity-100" : "opacity-0"}`}
+                                style={{
+                                  left: `${tag.x * 100}%`,
+                                  top: `${tag.y * 100}%`,
+                                  pointerEvents: tagsVisible ? "auto" : "none",
+                                }}
+                              >
+                                <div className="flex items-center justify-center">
+                                  <Tag className="h-6 w-6 text-red-500 fill-red-500/50" />
+                                </div>
+
+                                {/* tag label */}
+                                {tag.label && (
+                                  <div
+                                    className={`absolute ${labelPosition.top} ${labelPosition.left} ${labelPosition.origin} transform ${labelPosition.transform} bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-30`}
+                                  >
+                                    {tag.label}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })
+                        } catch (e) {
+                          console.error("Error parsing tag data:", e)
+                          return null
+                        }
+                      })()}
+                    </>
+                  )}
                 </div>
 
                 {/* Gradient overlay for better text visibility */}
@@ -382,7 +472,9 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                       <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
                         <User className="w-5 h-5 text-gray-600" />
                       </div>
-                      <span className="font-semibold">@{post.first_name} {post.last_name}</span>
+                      <span className="font-semibold">
+                        @{post.first_name} {post.last_name}
+                      </span>
                     </div>
                     <p className="text-sm">I created this post at {post.created_at.toLocaleString()}!</p>
                   </div>
@@ -390,26 +482,24 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
                   {/* Action buttons */}
                   <div className="flex flex-col gap-3 items-center">
                     {/* Upload button - only visible on md and up */}
-                    <button
-                      aria-label="Upload button"
-                      onClick={handleUpload}
-                      className="flex flex-col items-center"
-                    >
+                    <button aria-label="Upload button" onClick={handleUpload} className="flex flex-col items-center">
                       <Upload className="w-7 h-7 text-white" />
                     </button>
-                    <button aria-label="Like button" onClick={() => {
-                      if (user) {
-                        handleLike(post.id)
-                      }
-                      else {
-                        router.push("/login")
-                      }
-                    }}
+                    <button
+                      aria-label="Like button"
+                      onClick={() => {
+                        if (user) {
+                          handleLike(post.id)
+                        } else {
+                          router.push("/login")
+                        }
+                      }}
                       className="flex flex-col items-center"
                     >
                       <Heart
-                        className={`w-7 h-7 transition-colors duration-200 ease-in-out  ${user?.id && post.likes.includes(user.id) ? "text-red-500 fill-red-500" : "text-white"
-                          }`}
+                        className={`w-7 h-7 transition-colors duration-200 ease-in-out  ${
+                          user?.id && post.likes.includes(user.id) ? "text-red-500 fill-red-500" : "text-white"
+                        }`}
                       />
                       <span className="text-white text-xs">{post.likes.length}</span>
                     </button>
@@ -424,58 +514,69 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
 
                     {activeCommentPostId === post.id && (
                       <CommentDrawer
-                      open={true}
-                      onOpenChange={() => setActiveCommentPostId(null)}
-                      postId={post.id}
-                      onCommentChanged={() => {
-                        setPosts((prev) =>
-                          prev.map((p) =>
-                            p.id === post.id
-                              ? {
-                                  ...p,
-                                  comment_count: Math.max(0, (p.comment_count || 0) - 1 + 2),
-                                }
-                              : p
+                        open={true}
+                        onOpenChange={() => setActiveCommentPostId(null)}
+                        postId={post.id}
+                        onCommentChanged={() => {
+                          setPosts((prev) =>
+                            prev.map((p) =>
+                              p.id === post.id
+                                ? {
+                                    ...p,
+                                    comment_count: Math.max(0, (p.comment_count || 0) - 1 + 2),
+                                  }
+                                : p,
+                            ),
                           )
-                        );
-                      }}
-                    />
+                        }}
+                      />
                     )}
                     {/* Save Button with Lucide Bookmark Icon */}
-                    <button aria-label="Save button" onClick={() => {
+                    <button
+                      aria-label="Save button"
+                      onClick={() => {
                         if (user) {
                           // Replace with actual save functionality
-                          handleSave(post.id);
-
+                          handleSave(post.id)
                         } else {
-                          router.push("/login");
+                          router.push("/login")
                         }
                       }}
                       className="flex flex-col items-center"
                     >
-                      <Bookmark className={`w-7 h-7 transition-colors duration-200 ease-in-out  ${user?.id && post.saves.includes(user.id) ? "text-yellow-500 fill-yellow-500" : "text-white"
-                          }`} /> {/* Bookmark icon */}
+                      <Bookmark
+                        className={`w-7 h-7 transition-colors duration-200 ease-in-out  ${
+                          user?.id && post.saves.includes(user.id) ? "text-yellow-500 fill-yellow-500" : "text-white"
+                        }`}
+                      />{" "}
+                      {/* Bookmark icon */}
                     </button>
 
-                    
-                    <button onClick={() => { }} className="flex flex-col items-center">
+                    <button onClick={() => {}} className="flex flex-col items-center">
                       <Share2 className="w-7 h-7 text-white" />
                     </button>
 
                     {/* Delete button only visible for posts made by the current user */}
                     {user?.id && (
                       <>
-                      {userDbId && post.fk_author_id === userDbId && (
-                        <button 
-                          aria-label="Delete button" 
-                          onClick={() => handleDelete(post.id)}
-                          className="flex flex-col items-center mt-3"
-                        >
-                          <Trash2 className="w-7 h-7 text-white hover:text-red-500 transition-colors duration-200 ease-in-out" />
-                        </button>
-                      )}
+                        {userDbId && post.fk_author_id === userDbId && (
+                          <button
+                            aria-label="Delete button"
+                            onClick={() => handleDelete(post.id)}
+                            className="flex flex-col items-center mt-3"
+                          >
+                            <Trash2 className="w-7 h-7 text-white hover:text-red-500 transition-colors duration-200 ease-in-out" />
+                          </button>
+                        )}
                       </>
                     )}
+                    <button
+                      aria-label="Show tags button"
+                      onClick={() => setTagsVisible(!tagsVisible)}
+                      className={`flex flex-col items-center transition-colors duration-200 ${tagsVisible ? "text-red-500" : "text-white"}`}
+                    >
+                      <Tag className="w-7 h-7" />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -496,13 +597,17 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
               </div>
             </div>
             <h2 className="text-white text-xl mb-8">Share your outfit!</h2>
-            <button aria-label="Feed upload button" onClick={handleUpload} className="bg-white text-black font-medium rounded-full px-8 py-3">
+            <button
+              aria-label="Feed upload button"
+              onClick={handleUpload}
+              className="bg-white text-black font-medium rounded-full px-8 py-3"
+            >
               Upload
             </button>
             {uploadError && <p className="text-red-500 mt-4">{uploadError}</p>}
 
             {/* Hidden ImageUpload component - only handles file selection and upload */}
-            <div style={{ display: 'none' }}>
+            <div style={{ display: "none" }}>
               <ImageUpload
                 ref={imageUploadRef}
                 onUploadComplete={handleUploadComplete}
@@ -522,28 +627,30 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-800 text-white border border-gray-700 hover:bg-gray-700">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-gray-800 text-white border border-gray-700 hover:bg-gray-700">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700 text-white border border-gray-700"
               onClick={async () => {
-                if (!postToDelete) return;
+                if (!postToDelete) return
                 try {
                   const res = await fetch("/api/posts", {
                     method: "DELETE",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ postId: postToDelete }),
-                  });
+                  })
                   if (res.ok) {
-                    setPosts(posts => posts.filter(post => post.id !== postToDelete));
+                    setPosts((posts) => posts.filter((post) => post.id !== postToDelete))
                   } else {
-                    const data = await res.json();
-                    alert(data.error || "Failed to delete post");
+                    const data = await res.json()
+                    alert(data.error || "Failed to delete post")
                   }
                 } catch (_err) {
-                  alert("Failed to delete post");
+                  alert("Failed to delete post")
                 } finally {
-                  setDeleteDialogOpen(false);
-                  setPostToDelete(null);
+                  setDeleteDialogOpen(false)
+                  setPostToDelete(null)
                 }
               }}
             >
@@ -561,4 +668,3 @@ export default function Feed({ postData, offset }: { postData: Post[], offset: n
     </div>
   )
 }
-

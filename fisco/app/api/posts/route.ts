@@ -5,7 +5,7 @@ const sql = neon(process.env.DATABASE_URL!);
 
 export async function POST(req: Request) {
   try {
-    const { fk_image_id, clerk_user_id } = await req.json();
+    const { fk_image_id, clerk_user_id, tags } = await req.json();
     if (!fk_image_id || !clerk_user_id) {
       return NextResponse.json({ error: "Missing fk_image_id or clerk_user_id" }, { status: 400 });
     }
@@ -20,8 +20,10 @@ export async function POST(req: Request) {
     }
 
     // Insert post with the found UUID
+    // Also add the tags
+    console.log(tags)
     const result = await sql`
-      INSERT INTO posts (fk_image_id, fk_author_id) VALUES (${fk_image_id}, ${author_uuid}) RETURNING id;
+      INSERT INTO posts (fk_image_id, fk_author_id, tags) VALUES (${fk_image_id}, ${author_uuid}, ${tags}) RETURNING id;
     `;
     const postId = result[0]?.id;
     if (!postId) {
