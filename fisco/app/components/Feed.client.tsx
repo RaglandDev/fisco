@@ -482,7 +482,15 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
                   {/* Action buttons */}
                   <div className="flex flex-col gap-3 items-center">
                     {/* Upload button - only visible on md and up */}
-                    <button aria-label="Upload button" onClick={handleUpload} className="flex flex-col items-center">
+                    <button aria-label="Upload button" 
+                        onClick={() => {
+                            if (user) {
+                                handleUpload()
+                            } else {
+                              router.push("/login")
+                            }
+                          }}
+                        className="flex flex-col items-center">
                       <Upload className="w-7 h-7 text-white" />
                     </button>
                     <button
