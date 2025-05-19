@@ -24,7 +24,7 @@ interface CommentDrawerProps {
   onOpenChange: (open: boolean) => void;
   postId: string;
   onCommentChanged?: () => void;
-  setCommentCount?: (count: number) => void; // ✅ new
+  setCommentCount?: (count: number) => void;
 }
 
 export default function CommentDrawer({
@@ -68,7 +68,7 @@ export default function CommentDrawer({
 
       if (Array.isArray(data)) {
         setComments(data);
-        if (setCommentCount) setCommentCount(data.length); // ✅ update count
+        if (setCommentCount) setCommentCount(data.length); 
       } else {
         console.error("Expected array, got:", data);
         setComments([]);
@@ -88,7 +88,7 @@ export default function CommentDrawer({
       await fetch(`/api/comments?id=${commentId}&clerkUserId=${clerkUserId}`, {
         method: "DELETE",
       });
-      await fetchComments(); // ✅ re-sync count
+      await fetchComments(); 
     } catch (err) {
       console.error(err);
       alert("Failed to delete comment");
@@ -125,7 +125,7 @@ export default function CommentDrawer({
 
       setComment("");
       if (onCommentChanged) onCommentChanged();
-      await fetchComments(); // ✅ re-sync count
+      await fetchComments(); 
     } catch (err) {
       console.error(err);
       alert("Failed to post comment");
