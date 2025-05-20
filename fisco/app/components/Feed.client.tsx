@@ -89,7 +89,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
   const [saveInProgress, setSaveInProgress] = useState<string | null>(null)
 
   // Store the database UUID for the current user
-  const [userDbId, setUserDbId] = useState<string | null>(null)
+  const [userUUID, setUserUUID] = useState<string | null>(null)
 
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -158,14 +158,14 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
 
   // Fetch the user's database UUID when logged in
   useEffect(() => {
-    const fetchUserDbId = async () => {
+    const fetchUserUUID = async () => {
       if (user?.id) {
         try {
           const response = await fetch(`/api/users/me?clerkUserId=${user.id}`)
           if (response.ok) {
             const data = await response.json()
             if (data.internalUserId) {
-              setUserDbId(data.internalUserId)
+              setUserUUID(data.internalUserId)
             }
           }
         } catch (error) {
@@ -173,8 +173,8 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
         }
       }
     }
-
-    fetchUserDbId()
+    
+    fetchUserUUID()
   }, [user?.id])
 
   const handleLike = async (post_id: string) => {
@@ -526,7 +526,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
                   {/* Delete button only visible for posts made by the current user */}
                   {user?.id && (
                     <>
-                      {userDbId && post.fk_author_id === userDbId && (
+                      {userUUID && post.fk_author_id === userUUID && (
                         <button
                           aria-label="Delete button"
                           onClick={() => handleDelete(post.id)}

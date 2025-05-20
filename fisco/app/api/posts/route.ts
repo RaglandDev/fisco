@@ -88,7 +88,11 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "No associated image found" }, { status: 404 });
     }
 
+    // Delete all comments associated with this post
+    await sql`DELETE FROM comments WHERE post_id = ${postId}`;
+    // Delete the post itself
     await sql`DELETE FROM posts WHERE id = ${postId}`;
+    // Delete the associated image
     await sql`DELETE FROM images WHERE id = ${imageId}`;
 
     return NextResponse.json({ success: true });
