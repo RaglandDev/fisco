@@ -1,6 +1,5 @@
 "use client"
 
-import ImageUpload, { type ImageUploadHandle } from "@/components/ImageUpload.client"
 import { useState, useRef, useEffect } from "react"
 import CommentDrawer from "@/components/CommentDrawer.client"
 import {
@@ -16,7 +15,7 @@ import {
 import Image from "next/image"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
-import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft, Bookmark, Trash2, Tag } from "lucide-react"
+import { Heart, MessageCircle, User, Bookmark, Trash2, Tag } from "lucide-react"
 import type { Post } from "@/types"
 import Link from "next/link"
 
@@ -57,12 +56,32 @@ const getLabelPosition = (x: number, y: number) => {
   return position
 }
 
+// Helper function to format timestamp to simplified relative time
+const formatRelativeTime = (dateString: string | Date) => {
+  const date = typeof dateString === "string" ? new Date(dateString) : dateString
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMinutes = Math.floor(diffMs / (1000 * 60))
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  const diffWeeks = Math.floor(diffDays / 7)
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes}m`
+  } else if (diffHours < 24) {
+    return `${diffHours}h`
+  } else if (diffDays < 7) {
+    return `${diffDays}d`
+  } else {
+    return `${diffWeeks}w`
+  }
+}
+
 const POSTS_PER_PAGE = 5
 
 export default function Feed({ postData, offset }: { postData: Post[]; offset: number }) {
   const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(null)
   const [posts, setPosts] = useState<Post[]>(postData)
-  const [showUploadPage, setShowUploadPage] = useState(false)
   // Lock for liking posts
   const [likeInProgress, setLikeInProgress] = useState<string | null>(null)
 
@@ -78,6 +97,8 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [postToDelete, setPostToDelete] = useState<string | null>(null)
+
+  const [tagsVisible, setTagsVisible] = useState(false)
 
   const handleDelete = (postId: string) => {
     console.log("Delete button clicked for post:", postId)
@@ -133,48 +154,6 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
     loadMorePosts()
   }, [posts.length, currentPostIndex])
 
-  // Reference to the ImageUpload component
-  const imageUploadRef = useRef<ImageUploadHandle>(null)
-  const [uploadError, setUploadError] = useState<string | null>(null)
-  const [tagsVisible, setTagsVisible] = useState(false)
-
-  // Handler for upload button click
-  const handleUpload = () => {
-    // Call the file selection trigger in ImageUpload component
-    if (imageUploadRef.current) {
-      imageUploadRef.current.triggerFileSelect()
-    }
-  }
-
-  // Handler for when upload completes successfully
-  const handleUploadComplete = (imageUrl: string) => {
-    setUploadError(null)
-    setShowUploadPage(false) // Hide upload page
-
-    // Save image data to sessionStorage for preview page
-    sessionStorage.setItem("previewImageData", imageUrl)
-
-    // Extract mime type from data URL if possible
-    let mime = null
-    if (imageUrl.startsWith("data:")) {
-      const match = imageUrl.match(/^data:(.*?);base64,/)
-      mime = match ? match[1] : null
-    }
-    if (mime) sessionStorage.setItem("previewImageType", mime)
-
-    // Navigate to preview page
-    router.push("/preview")
-  }
-
-  // Handler for upload errors
-  const handleUploadError = (error: string) => {
-    setUploadError(error)
-  }
-
-  const goBackToFeed = () => {
-    setShowUploadPage(false)
-  }
-
   const { user } = useUser()
 
   // Fetch the user's database UUID when logged in
@@ -221,6 +200,30 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
 
     const hasLiked = post.likes.includes(user?.id)
 
+    // Optimistically update UI immediately
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => {
+        if (post.id === post_id) {
+          if (hasLiked) {
+            // Remove the user ID from the likes array
+            return {
+              ...post,
+              likes: post.likes.filter((id) => id !== userId),
+            }
+          } else {
+            // Add the user ID to the likes array
+            return {
+              ...post,
+              likes: [...post.likes, userId],
+            }
+          }
+        } else {
+          // Return the post unchanged
+          return post
+        }
+      }),
+    )
+
     // Make an API call to update the likes array for the post
     try {
       // Determines whether to like/remove like from the post
@@ -231,19 +234,20 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
         },
         body: JSON.stringify({ post_id, userId }), // send ID in body, not path
       })
-
-      // Update the likes array for the specific post in the client-side state
+    } catch (error) {
+      console.error("Error liking post:", error)
+      // Revert the optimistic update if the API call fails
       setPosts((prevPosts) =>
         prevPosts.map((post) => {
           if (post.id === post_id) {
-            if (hasLiked) {
+            if (!hasLiked) {
               // Remove the user ID from the likes array
               return {
                 ...post,
                 likes: post.likes.filter((id) => id !== userId),
               }
             } else {
-              // Add the user ID to the likes array
+              // Add the user ID back to the likes array
               return {
                 ...post,
                 likes: [...post.likes, userId],
@@ -255,8 +259,6 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
           }
         }),
       )
-    } catch (error) {
-      console.error("Error liking post:", error)
     } finally {
       // Unlock
       setLikeInProgress(null)
@@ -265,10 +267,10 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
   const handleSave = async (post_id: string) => {
     // If user is not signed in
     if (!user) {
-      alert("Please sign in to like posts!")
+      alert("Please sign in to save posts!")
       return
     }
-    // Prohibits the user from liking the same post multiple times
+    // Prohibits the user from saving the same post multiple times
     if (saveInProgress === post_id) {
       return
     }
@@ -285,9 +287,33 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
 
     const hasSaved = post.saves.includes(user?.id)
 
-    // Make an API call to update the likes array for the post
+    // Optimistically update UI immediately
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => {
+        if (post.id === post_id) {
+          if (hasSaved) {
+            // Remove the user ID from the saves array
+            return {
+              ...post,
+              saves: post.saves.filter((id) => id !== userId),
+            }
+          } else {
+            // Add the user ID to the saves array
+            return {
+              ...post,
+              saves: [...post.saves, userId],
+            }
+          }
+        } else {
+          // Return the post unchanged
+          return post
+        }
+      }),
+    )
+
+    // Make an API call to update the saves array for the post
     try {
-      // Determines whether to like/remove like from the post
+      // Determines whether to save/remove save from the post
       await fetch(`/api/profile`, {
         method: hasSaved ? "DELETE" : "POST",
         headers: {
@@ -295,19 +321,20 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
         },
         body: JSON.stringify({ post_id, userId }), // send ID in body, not path
       })
-
-      // Update the likes array for the specific post in the client-side state
+    } catch (error) {
+      console.error("Error saving post:", error)
+      // Revert the optimistic update if the API call fails
       setPosts((prevPosts) =>
         prevPosts.map((post) => {
           if (post.id === post_id) {
-            if (hasSaved) {
-              // Remove the user ID from the likes array
+            if (!hasSaved) {
+              // Remove the user ID from the saves array
               return {
                 ...post,
                 saves: post.saves.filter((id) => id !== userId),
               }
             } else {
-              // Add the user ID to the likes array
+              // Add the user ID back to the saves array
               return {
                 ...post,
                 saves: [...post.saves, userId],
@@ -319,8 +346,6 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
           }
         }),
       )
-    } catch (error) {
-      console.error("Error saving post:", error)
     } finally {
       // Unlock
       setSaveInProgress(null)
@@ -333,246 +358,200 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
       aria-label="Feed window"
       style={{ touchAction: "pan-y", overscrollBehavior: "none" }}
     >
-      {!showUploadPage ? (
-        // Feed Page
-        <div className="w-full h-full relative">
-          <div
-            ref={containerRef}
-            className="h-full w-full overflow-y-auto snap-y snap-mandatory"
-            style={{ scrollbarWidth: "none", touchAction: "pan-y", overscrollBehavior: "none" }}
-            onScroll={handleScroll}
-          >
-            {posts.map((post, index) => (
-              <div key={post.id} className="relative h-full w-full snap-start snap-alway">
-                {/* Post content remains the same */}
-                <div className="absolute inset-0">
-                  <Image
-                    data-testid="Post image"
-                    src={
-                      `data:${post.image_data.startsWith("/9j/") ? "image/jpeg" : "image/png"};base64,${post.image_data}` ||
-                      "/placeholder.svg"
-                    }
-                    alt={"alt"}
-                    fill
-                    className="object-contain"
-                    priority={index <= 1}
-                  />
+      <div className="w-full h-full relative">
+        <div
+          ref={containerRef}
+          className="h-full w-full overflow-y-auto snap-y snap-mandatory"
+          style={{ scrollbarWidth: "none", touchAction: "pan-y", overscrollBehavior: "none" }}
+          onScroll={handleScroll}
+        >
+          {posts.map((post, index) => (
+            <div key={post.id} className="relative h-full w-full snap-start snap-alway">
+              {/* Post content remains the same */}
+              <div className="absolute inset-0">
+                <Image
+                  data-testid="Post image"
+                  src={
+                    `data:${post.image_data.startsWith("/9j/") ? "image/jpeg" : "image/png"};base64,${post.image_data}` ||
+                    "/placeholder.svg"
+                  }
+                  alt={"alt"}
+                  fill
+                  className="object-contain"
+                  priority={index <= 1}
+                />
 
-                  {/* Render tags if they exist with fade transition */}
-                  {post.tags && (
-                    <>
-                      {(() => {
-                        try {
-                          // Parse the tag data
+                {/* Render tags if they exist with fade transition */}
+                {post.tags && (
+                  <>
+                    {(() => {
+                      try {
+                        // Parse the tag data
 
-                          return post.tags.map((tag, tagIndex) => {
-                            // Get dynamic position for label based on tag position
-                            const labelPosition = getLabelPosition(tag.x, tag.y)
+                        return post.tags.map((tag, tagIndex) => {
+                          // Get dynamic position for label based on tag position
+                          const labelPosition = getLabelPosition(tag.x, tag.y)
 
-                            return (
-                              <div
-                                id={`post tag ${tagIndex}`}
-                                key={tagIndex}
-                                className={`absolute z-20 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 ease-in-out ${tagsVisible ? "opacity-100" : "opacity-0"}`}
-                                style={{
-                                  left: `${tag.x * 100}%`,
-                                  top: `${tag.y * 100}%`,
-                                  pointerEvents: tagsVisible ? "auto" : "none",
-                                }}
-                              >
-                                <div className="flex items-center justify-center">
-                                  <Tag className="h-6 w-6 text-red-500 fill-red-500/50" />
-                                </div>
-
-                                {/* tag label */}
-                                {tag.label && (
-                                  <div
-                                    className={`absolute ${labelPosition.top} ${labelPosition.left} ${labelPosition.origin} transform ${labelPosition.transform} bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-30`}
-                                  >
-                                    {tag.label}
-                                  </div>
-                                )}
+                          return (
+                            <div
+                              id={`post tag ${tagIndex}`}
+                              key={tagIndex}
+                              className={`absolute z-20 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 ease-in-out ${tagsVisible ? "opacity-100" : "opacity-0"}`}
+                              style={{
+                                left: `${tag.x * 100}%`,
+                                top: `${tag.y * 100}%`,
+                                pointerEvents: tagsVisible ? "auto" : "none",
+                              }}
+                            >
+                              <div className="flex items-center justify-center">
+                                <Tag className="h-6 w-6 text-red-500 fill-red-500/50" />
                               </div>
-                            )
-                          })
-                        } catch (e) {
-                          console.error("Error parsing tag data:", e)
-                          return null
-                        }
-                      })()}
-                    </>
-                  )}
-                </div>
 
-                {/* Gradient overlay for better text visibility */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70" />
+                              {/* tag label */}
+                              {tag.label && (
+                                <div
+                                  className={`absolute ${labelPosition.top} ${labelPosition.left} ${labelPosition.origin} transform ${labelPosition.transform} bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-30`}
+                                >
+                                  {tag.label}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })
+                      } catch (e) {
+                        console.error("Error parsing tag data:", e)
+                        return null
+                      }
+                    })()}
+                  </>
+                )}
+              </div>
 
-                {/* Bottom bar with user info and actions */}
-                <div className="absolute bottom-0 left-0 right-0 flex items-end p-4 z-10">
-                  {/* User info and caption */}
-                  <div className="flex-1 text-white mr-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                        <User className="w-5 h-5 text-gray-600" />
-                      </div>
+              {/* Gradient overlay for better text visibility */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70" />
+
+              {/* Bottom bar with user info and actions */}
+              <div className="absolute bottom-0 left-0 right-0 flex items-end p-4 z-10">
+                {/* User info and caption */}
+                <div className="flex-1 text-white mr-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                      <User className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div className="flex items-center">
                       {/* Profile Button with Conditional Redirect */}
                       <Link href={user ? "/profile" : "/login"}>
                         <button className="font-semibold text-white bg-transparent border-none cursor-pointer">
                           @{post.first_name || "Unknown"} {post.last_name || "User"}
                         </button>
                       </Link>
+                      {/* Bullet separator and timestamp */}
+                      <span className="text-gray-400 mx-2">•</span>
+                      <span className="text-gray-400 text-sm">{formatRelativeTime(post.created_at)}</span>
                     </div>
-                    <p className="text-sm">I created this post at {post.created_at.toLocaleString()}!</p>
-                  </div>
-
-                  {/* Action buttons */}
-                  <div className="flex flex-col gap-3 items-center">
-                    {/* Upload button - only visible on md and up */}
-                    <button
-                      aria-label="Upload button"
-                      onClick={() => {
-                        if (user) {
-                          handleUpload()
-                        } else {
-                          router.push("/login")
-                        }
-                      }}
-                      className="flex flex-col items-center"
-                    >
-                      <Upload className="w-7 h-7 text-white" />
-                    </button>
-                    <button
-                      aria-label="Like button"
-                      onClick={() => {
-                        if (user) {
-                          handleLike(post.id)
-                        } else {
-                          router.push("/login")
-                        }
-                      }}
-                      className="flex flex-col items-center"
-                    >
-                      <Heart
-                        className={`w-7 h-7 transition-colors duration-200 ease-in-out  ${
-                          user?.id && post.likes.includes(user.id) ? "text-red-500 fill-red-500" : "text-white"
-                        }`}
-                      />
-                      <span className="text-white text-xs">{post.likes.length}</span>
-                    </button>
-                    <button
-                      aria-label="Comment button"
-                      onClick={() => setActiveCommentPostId(post.id)}
-                      className="flex flex-col items-center"
-                    >
-                      <MessageCircle className="w-7 h-7 text-white" />
-                      <span className="text-white text-xs">{post.comment_count}</span>
-                    </button>
-
-                    {activeCommentPostId === post.id && (
-                      <CommentDrawer
-                        open={true}
-                        onOpenChange={() => setActiveCommentPostId(null)}
-                        postId={post.id}
-                        onCommentChanged={() => {
-                          setPosts((prev) =>
-                            prev.map((p) =>
-                              p.id === post.id
-                                ? {
-                                    ...p,
-                                    comment_count: Math.max(0, (p.comment_count || 0) - 1 + 2),
-                                  }
-                                : p,
-                            ),
-                          )
-                        }}
-                      />
-                    )}
-                    {/* Save Button with Lucide Bookmark Icon */}
-                    <button
-                      aria-label="Save button"
-                      onClick={() => {
-                        if (user) {
-                          // Replace with actual save functionality
-                          handleSave(post.id)
-                        } else {
-                          router.push("/login")
-                        }
-                      }}
-                      className="flex flex-col items-center"
-                    >
-                      <Bookmark
-                        className={`w-7 h-7 transition-colors duration-200 ease-in-out  ${
-                          user?.id && post.saves.includes(user.id) ? "text-yellow-500 fill-yellow-500" : "text-white"
-                        }`}
-                      />{" "}
-                      {/* Bookmark icon */}
-                    </button>
-
-                    <button onClick={() => {}} className="flex flex-col items-center">
-                      <Share2 className="w-7 h-7 text-white" />
-                    </button>
-
-                    {/* Delete button only visible for posts made by the current user */}
-                    {user?.id && (
-                      <>
-                        {userDbId && post.fk_author_id === userDbId && (
-                          <button
-                            aria-label="Delete button"
-                            onClick={() => handleDelete(post.id)}
-                            className="flex flex-col items-center mt-3"
-                          >
-                            <Trash2 className="w-7 h-7 text-white hover:text-red-500 transition-colors duration-200 ease-in-out" />
-                          </button>
-                        )}
-                      </>
-                    )}
-                    <button
-                      aria-label="Show tags button"
-                      onClick={() => setTagsVisible(!tagsVisible)}
-                      className={`flex flex-col items-center transition-colors duration-200 ${tagsVisible ? "text-red-500" : "text-white"}`}
-                    >
-                      <Tag className="w-7 h-7" />
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        // Upload Page
-        <div className="w-full h-full bg-black flex flex-col items-center justify-center relative">
-          <button aria-label="Return button" onClick={goBackToFeed} className="absolute top-4 left-4 text-white p-2">
-            <ArrowLeft className="w-6 h-6" />
-          </button>
 
-          <div className="text-center">
-            <div className="mb-6">
-              <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center mx-auto">
-                <Upload className="w-10 h-10 text-gray-400" />
+                {/* Action buttons */}
+                <div className="flex flex-col gap-3 items-center">
+                  <button
+                    aria-label="Like button"
+                    onClick={() => {
+                      if (user) {
+                        handleLike(post.id)
+                      } else {
+                        router.push("/login")
+                      }
+                    }}
+                    className="flex flex-col items-center transition-transform duration-200 hover:scale-110"
+                  >
+                    <Heart
+                      className={`w-7 h-7 transition-all duration-300 ease-in-out ${
+                        user?.id && post.likes.includes(user.id) ? "text-red-500 fill-red-500 scale-110" : "text-white"
+                      }`}
+                    />
+                    <span className="text-white text-xs">{post.likes.length}</span>
+                  </button>
+                  <button
+                    aria-label="Comment button"
+                    onClick={() => setActiveCommentPostId(post.id)}
+                    className="flex flex-col items-center transition-transform duration-200 hover:scale-110"
+                  >
+                    <MessageCircle className="w-7 h-7 text-white transition-all duration-300 ease-in-out hover:text-blue-400" />
+                    <span className="text-white text-xs">{post.comment_count}</span>
+                  </button>
+
+                  {activeCommentPostId === post.id && (
+                    <CommentDrawer
+                      open={true}
+                      onOpenChange={() => setActiveCommentPostId(null)}
+                      postId={post.id}
+                      onCommentChanged={() => {
+                        setPosts((prev) =>
+                          prev.map((p) =>
+                            p.id === post.id
+                              ? {
+                                  ...p,
+                                  comment_count: Math.max(0, (p.comment_count || 0) - 1 + 2),
+                                }
+                              : p,
+                          ),
+                        )
+                      }}
+                    />
+                  )}
+                  {/* Save Button with Lucide Bookmark Icon */}
+                  <button
+                    aria-label="Save button"
+                    onClick={() => {
+                      if (user) {
+                        // Replace with actual save functionality
+                        handleSave(post.id)
+                      } else {
+                        router.push("/login")
+                      }
+                    }}
+                    className="flex flex-col items-center transition-transform duration-200 hover:scale-110"
+                  >
+                    <Bookmark
+                      className={`w-7 h-7 transition-all duration-300 ease-in-out ${
+                        user?.id && post.saves.includes(user.id)
+                          ? "text-yellow-500 fill-yellow-500 scale-110"
+                          : "text-white"
+                      }`}
+                    />{" "}
+                    {/* Bookmark icon */}
+                  </button>
+
+                  {/* Delete button only visible for posts made by the current user */}
+                  {user?.id && (
+                    <>
+                      {userDbId && post.fk_author_id === userDbId && (
+                        <button
+                          aria-label="Delete button"
+                          onClick={() => handleDelete(post.id)}
+                          className="flex flex-col items-center mt-3 transition-transform duration-200 hover:scale-110"
+                        >
+                          <Trash2 className="w-7 h-7 text-white hover:text-red-500 transition-all duration-300 ease-in-out" />
+                        </button>
+                      )}
+                    </>
+                  )}
+                  <button
+                    aria-label="Show tags button"
+                    onClick={() => setTagsVisible(!tagsVisible)}
+                    className={`flex flex-col items-center transition-all duration-200 hover:scale-110 ${tagsVisible ? "text-red-500" : "text-white"}`}
+                  >
+                    <Tag
+                      className={`w-7 h-7 transition-all duration-300 ease-in-out ${tagsVisible ? "scale-110" : ""}`}
+                    />
+                  </button>
+                </div>
               </div>
             </div>
-            <h2 className="text-white text-xl mb-8">Share your outfit!</h2>
-            <button
-              aria-label="Feed upload button"
-              onClick={handleUpload}
-              className="bg-white text-black font-medium rounded-full px-8 py-3"
-            >
-              Upload
-            </button>
-            {uploadError && <p className="text-red-500 mt-4">{uploadError}</p>}
-
-            {/* Hidden ImageUpload component - only handles file selection and upload */}
-            <div style={{ display: "none" }}>
-              <ImageUpload
-                ref={imageUploadRef}
-                onUploadComplete={handleUploadComplete}
-                onUploadError={handleUploadError}
-              />
-            </div>
-          </div>
+          ))}
         </div>
-      )}
+      </div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-black text-white border border-gray-700">
