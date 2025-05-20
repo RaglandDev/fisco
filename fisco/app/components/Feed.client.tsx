@@ -1,7 +1,7 @@
 "use client"
 
 import ImageUpload, { type ImageUploadHandle } from "@/components/ImageUpload.client"
-import { useState, useRef, useEffect, type TouchEvent } from "react"
+import { useState, useRef, useEffect } from "react"
 import CommentDrawer from "@/components/CommentDrawer.client"
 import {
   AlertDialog,
@@ -18,8 +18,7 @@ import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import { Heart, MessageCircle, Share2, User, Upload, ArrowLeft, Bookmark, Trash2, Tag } from "lucide-react"
 import type { Post } from "@/types"
-import Link from 'next/link';
-
+import Link from "next/link"
 
 // Helper function to determine label position based on pin position
 const getLabelPosition = (x: number, y: number) => {
@@ -73,10 +72,6 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
   // Store the database UUID for the current user
   const [userDbId, setUserDbId] = useState<string | null>(null)
 
-  const [touchStart, setTouchStart] = useState<number | null>(null)
-  const [touchEnd, setTouchEnd] = useState<number | null>(null)
-
-  const [swipeTransition, setSwipeTransition] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const [currentPostIndex, setCurrentPostIndex] = useState(0) // how deep into the feed you are
@@ -137,55 +132,6 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
 
     loadMorePosts()
   }, [posts.length, currentPostIndex])
-
-  // Minimum swipe distance required (in px)
-  const minSwipeDistance = 30
-
-  // Touch event handlers for swipe detection
-  const onTouchStart = (e: TouchEvent) => {
-    setTouchEnd(null)
-    setTouchStart(e.targetTouches[0].clientX)
-  }
-
-  const onTouchMove = (e: TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX)
-
-    if (touchStart && touchEnd) {
-      const distance = touchEnd - touchStart
-      const isLeftSwipe = distance < 0
-      const isRightSwipe = distance > 0
-
-      // Only allow left swipe on feed page and right swipe on upload page
-      if ((isLeftSwipe && !showUploadPage) || (isRightSwipe && showUploadPage)) {
-        // Calculate transition percentage based on swipe distance (max 100%)
-        const transitionPercentage = Math.min(Math.abs(distance) / 200, 1) * (isLeftSwipe ? 1 : -1)
-        setSwipeTransition(transitionPercentage)
-      }
-    }
-  }
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return
-
-    const distance = touchStart - touchEnd
-    const isLeftSwipe = distance < 0
-    const isRightSwipe = distance > 0
-
-    // Detect right swipe on feed page
-    if (isRightSwipe && !showUploadPage && Math.abs(distance) > minSwipeDistance) {
-      setShowUploadPage(true)
-    }
-
-    // Detect left swipe on upload page
-    if (isLeftSwipe && showUploadPage && Math.abs(distance) > minSwipeDistance) {
-      setShowUploadPage(false)
-    }
-
-    // Reset transition
-    setSwipeTransition(0)
-    setTouchStart(null)
-    setTouchEnd(null)
-  }
 
   // Reference to the ImageUpload component
   const imageUploadRef = useRef<ImageUploadHandle>(null)
@@ -384,25 +330,21 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
   return (
     <div
       className="w-[100dvw] h-[100dvh] md:w-[100dwh] md:h-[100dvh] md:my-4 md:rounded-xl overflow-hidden bg-black shadow-2xl relative"
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
       aria-label="Feed window"
+      style={{ touchAction: "pan-y", overscrollBehavior: "none" }}
     >
-      <div
-        className="flex w-[200%] h-[100dvh] transition-transform duration-300"
-        style={{ transform: showUploadPage ? "translateX(-50%)" : `translateX(${swipeTransition * 50}%)` }}
-      >
-        {/* Feed Page */}
-        <div className="w-1/2 h-full relative">
+      {!showUploadPage ? (
+        // Feed Page
+        <div className="w-full h-full relative">
           <div
             ref={containerRef}
             className="h-full w-full overflow-y-auto snap-y snap-mandatory"
-            style={{ scrollbarWidth: "none" }}
+            style={{ scrollbarWidth: "none", touchAction: "pan-y", overscrollBehavior: "none" }}
             onScroll={handleScroll}
           >
             {posts.map((post, index) => (
               <div key={post.id} className="relative h-full w-full snap-start snap-alway">
+                {/* Post content remains the same */}
                 <div className="absolute inset-0">
                   <Image
                     data-testid="Post image"
@@ -475,10 +417,8 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
                       </div>
                       {/* Profile Button with Conditional Redirect */}
                       <Link href={user ? "/profile" : "/login"}>
-                        <button 
-                          className="font-semibold text-white bg-transparent border-none cursor-pointer"
-                        >
-                          @{post.first_name || 'Unknown'} {post.last_name || 'User'}
+                        <button className="font-semibold text-white bg-transparent border-none cursor-pointer">
+                          @{post.first_name || "Unknown"} {post.last_name || "User"}
                         </button>
                       </Link>
                     </div>
@@ -488,15 +428,17 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
                   {/* Action buttons */}
                   <div className="flex flex-col gap-3 items-center">
                     {/* Upload button - only visible on md and up */}
-                    <button aria-label="Upload button" 
-                        onClick={() => {
-                            if (user) {
-                                handleUpload()
-                            } else {
-                              router.push("/login")
-                            }
-                          }}
-                        className="flex flex-col items-center">
+                    <button
+                      aria-label="Upload button"
+                      onClick={() => {
+                        if (user) {
+                          handleUpload()
+                        } else {
+                          router.push("/login")
+                        }
+                      }}
+                      className="flex flex-col items-center"
+                    >
                       <Upload className="w-7 h-7 text-white" />
                     </button>
                     <button
@@ -597,9 +539,9 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
             ))}
           </div>
         </div>
-
-        {/* Upload Page */}
-        <div className="w-1/2 h-full bg-black flex flex-col items-center justify-center relative">
+      ) : (
+        // Upload Page
+        <div className="w-full h-full bg-black flex flex-col items-center justify-center relative">
           <button aria-label="Return button" onClick={goBackToFeed} className="absolute top-4 left-4 text-white p-2">
             <ArrowLeft className="w-6 h-6" />
           </button>
@@ -630,7 +572,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-black text-white border border-gray-700">
@@ -677,6 +619,12 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
       <style jsx global>{`
     ::-webkit-scrollbar {
       display: none;
+    }
+    
+    /* Prevent horizontal scrolling/swiping */
+    body, html {
+      overscroll-behavior-x: none;
+      overflow-x: hidden;
     }
   `}</style>
     </div>

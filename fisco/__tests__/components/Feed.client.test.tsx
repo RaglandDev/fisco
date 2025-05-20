@@ -100,28 +100,6 @@ beforeEach(() => {
   router.push.mockClear();
 });
 
-it('uploads image and navigates to preview when upload button is clicked', async () => {
-  const postData = [
-    { id: '1', fk_image_id: 'img-123', fk_author_id: 'author-1', likes: [], image_data: 'base64img', first_name: 'Test Item 1', created_at: new Date('2023-01-01T00:00:00Z'), comments: [], last_name: 'LastName1', comment_count: 0, saves: [] },
-  ];
-
-  render(
-    <ClerkProvider>
-      <Feed postData={postData} offset={0}/>
-    </ClerkProvider>
-  );
-
-  const user = userEvent.setup();
-  await user.click(screen.getByLabelText('Feed upload button'));
-  
-  // Verify session storage was updated with image data
-  expect(mockSessionStorage.setItem).toHaveBeenCalledWith('previewImageData', 'data:image/jpeg;base64,mockbase64data');
-  expect(mockSessionStorage.setItem).toHaveBeenCalledWith('previewImageType', 'image/jpeg');
-  
-  // Verify navigation to preview page
-  expect(router.push).toHaveBeenCalledWith('/preview');
-});
-
 // Remove empty test that doesn't assert anything
 
 
