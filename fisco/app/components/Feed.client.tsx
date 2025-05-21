@@ -173,7 +173,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
         }
       }
     }
-    
+
     fetchUserUUID()
   }, [user?.id])
 

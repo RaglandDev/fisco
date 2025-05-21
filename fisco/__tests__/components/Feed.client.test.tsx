@@ -61,6 +61,14 @@ Object.defineProperty(window, 'sessionStorage', { value: mockSessionStorage });
 
 // Set up mock response handler
 const handlers = [
+  http.get('/api/users/me', ({ request }) => {
+    const url = new URL(request.url, 'http://localhost');
+    const clerkUserId = url.searchParams.get('clerkUserId');
+    if (clerkUserId === 'test-user-id') {
+      return HttpResponse.json({ internalUserId: 'mock-db-user-uuid' });
+    }
+    return HttpResponse.json({}, { status: 404 });
+  }),
   http.get(`${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint`, (req) => {
     return new HttpResponse(
       JSON.stringify([
@@ -88,9 +96,7 @@ it('renders without crashing', () => {
     <ClerkProvider>
       <Feed postData={postData} offset={0}/>
     </ClerkProvider>
-  );
-  
-  expect(container).toBeDefined();
+  )
 });
 
 beforeEach(() => {
@@ -100,6 +106,21 @@ beforeEach(() => {
   router.push.mockClear();
 });
 
+it('renders without crashing', () => {
+  const postData = [
+    { id: '1', fk_image_id: 'img-123', fk_author_id: 'author-1', likes: [], image_data: 'base64img', first_name: 'Test Item 1', created_at: '2023-01-01T00:00:00Z', comments: [], last_name: 'LastName1', saves: [] },
+    { id: '2', fk_image_id: 'img-124', fk_author_id: 'author-2', likes: [], image_data: 'base64img', first_name: 'Test Item 2', created_at: '2023-01-02T00:00:00Z', comments: [], last_name: 'LastName2', saves: [] },
+  ];
+  
+  const { container } = render(
+    <ClerkProvider>
+      <Feed postData={postData} offset={0}/>
+    </ClerkProvider>
+  );
+  expect(container).toBeDefined();
+});
+
+
 // Remove empty test that doesn't assert anything
 
 
@@ -107,7 +128,7 @@ beforeEach(() => {
 
 it('handles scroll events', async () => {
   const postData = [
-    { id: '1', fk_image_id: 'img-123', fk_author_id: 'author-1', likes: [], image_data: 'base64img', first_name: 'Test Item 1', created_at: '2023-01-01T00:00:00Z', comments: [], last_name: 'LastName1', saves: []},
+    { id: '1', fk_image_id: 'img-123', fk_author_id: 'mock-db-user-uuid', likes: [], image_data: 'base64img', first_name: 'Test Item 1', created_at: '2023-01-01T00:00:00Z', comments: [], last_name: 'LastName1', saves: []},
   ];
 
   render(
