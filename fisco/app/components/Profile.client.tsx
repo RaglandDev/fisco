@@ -36,7 +36,7 @@ const Profile: React.FC = () => {
 
   const fetchUserData = async (userId: string) => {
     try {
-      const response = await fetch(`/api/userendpoint?userId=${userId}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/userendpoint?userId=${userId}`);
       const data = await response.json();
       if (data.user) {
         setUserData({
@@ -55,7 +55,7 @@ const Profile: React.FC = () => {
 
   const fetchProfileImage = async (userId: string) => {
     try {
-      const res = await fetch(`/api/profilephoto?user_id=${userId}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profilephoto?user_id=${userId}`);
       const data = await res.json();
       if (data.image_data) {
         setUserData(prev =>
@@ -69,7 +69,7 @@ const Profile: React.FC = () => {
 
   const fetchSavedPosts = async (userId: string) => {
     try {
-      const response = await fetch('/api/profile', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
@@ -79,7 +79,7 @@ const Profile: React.FC = () => {
       const savedIds = data.saved_galleries?.["Saved Posts"] || [];
 
       if (savedIds.length > 0) {
-        const postRes = await fetch('/api/posts', {
+        const postRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ids: savedIds })
@@ -104,7 +104,7 @@ const Profile: React.FC = () => {
     formData.append("user_id", userId || "");
 
     try {
-      const response = await fetch("/api/profilephoto", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profilephoto`, {
         method: "POST",
         body: formData,
       });
