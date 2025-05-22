@@ -21,3 +21,10 @@ export type Post = {
     comment_count: number;
     tags: Array<Tag>
 };
+
+export type Comment = {
+  id: string;
+  comment_text: string;
+  created_at: string;
+  user_id: string;
+}

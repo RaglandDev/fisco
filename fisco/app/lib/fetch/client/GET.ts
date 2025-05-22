@@ -1,9 +1,4 @@
-export interface Comment {
-  id: string;
-  comment_text: string;
-  created_at: string;
-  user_id: string;
-}
+import { type Comment } from "@/types/index"
 
 export async function getInternalUserId(clerkUserId: string){
   try {
