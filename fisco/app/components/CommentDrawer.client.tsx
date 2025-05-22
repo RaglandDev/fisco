@@ -11,7 +11,7 @@ import {
   DrawerFooter,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { getInternalUserId } from "@/lib/fetch/client/GET";
+import { getInternalUserId, getComments } from "@/lib/fetch/client/GET";
 
 interface Comment {
   id: string;
@@ -61,26 +61,23 @@ export default function CommentDrawer({
       getId();
     }, [clerkUserId]);
 
-  // Fetch all comments
-  const fetchComments = async () => {
-    try {
-      const res = await fetch(`/api/comments?postId=${postId}`);
-      const data = await res.json();
+const fetchComments = async () => {
+  try {
+    const data = await getComments(postId);
 
-      if (Array.isArray(data)) {
-        setComments(data);
-        if (setCommentCount) setCommentCount(data.length); 
-      } else {
-        console.error("Expected array, got:", data);
-        setComments([]);
-        if (setCommentCount) setCommentCount(0);
-      }
-    } catch (err) {
-      console.error("Error fetching comments:", err);
+    if (data.length) {
+      setComments(data);
+      if (setCommentCount) setCommentCount(data.length);
+    } else {
       setComments([]);
       if (setCommentCount) setCommentCount(0);
     }
-  };
+  } catch (err) {
+    console.error("Error fetching comments:", err);
+    setComments([]);
+    if (setCommentCount) setCommentCount(0);
+  }
+};
 
   // Delete a comment
   const handleDelete = async (commentId: string) => {
