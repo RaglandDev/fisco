@@ -51,82 +51,82 @@ export default function CommentDrawer({
     }
   }, [open, isSignedIn, isLoaded, router, onOpenChange]);
 
-    React.useEffect(() => {
-      const getId = async () => {
-        if (clerkUserId) {
-          const id = await getInternalUserId(clerkUserId);
-          if (id) {
-            setInternalUserId(id);
-          }
+  React.useEffect(() => {
+    const getId = async () => {
+      if (clerkUserId) {
+        const id = await getInternalUserId(clerkUserId);
+        if (id) {
+          setInternalUserId(id);
         }
-      };
-      getId();
-    }, [clerkUserId]);
+      }
+    };
+    getId();
+  }, [clerkUserId]);
 
-const fetchComments = async () => {
-  try {
-    const data = await getComments(postId);
+  //fetching the comments
+  const fetchComments = React.useCallback(async () => {
+    try {
+      const data = await getComments(postId);
 
-    if (data.length) {
-      setComments(data);
-      if (setCommentCount) setCommentCount(data.length);
-    } else {
+      if (data.length) {
+        setComments(data);
+        if (setCommentCount) setCommentCount(data.length);
+      } else {
+        setComments([]);
+        if (setCommentCount) setCommentCount(0);
+      }
+    } catch (err) {
+      console.error("Error fetching comments:", err);
       setComments([]);
       if (setCommentCount) setCommentCount(0);
     }
-  } catch (err) {
-    console.error("Error fetching comments:", err);
-    setComments([]);
-    if (setCommentCount) setCommentCount(0);
-  }
-};
+  }, [postId, setCommentCount]);
 
-const handleDelete = async (commentId: string) => {
-  if (!confirm("Are you sure you want to delete this comment?")) return;
-
-  try {
-    const success = await deleteComment(commentId, clerkUserId);
-    if (success) {
-      await fetchComments();
-    } else {
-      alert("Failed to delete comment");
-    }
-  } catch (err) {
-    console.error(err);
-    alert("Failed to delete comment");
-  }
-};
-
-  // Fetch on drawer open
   React.useEffect(() => {
     if (open) {
       fetchComments();
     }
-  }, [open, postId]);
+  }, [open, fetchComments]);
+
+  const handleDelete = async (commentId: string) => {
+    if (!confirm("Are you sure you want to delete this comment?")) return;
+
+    try {
+      const success = await deleteComment(commentId, clerkUserId);
+      if (success) {
+        await fetchComments();
+      } else {
+        alert("Failed to delete comment");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete comment");
+    }
+  };
 
   // Update comment input
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setComment(e.target.value);
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!comment.trim()) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!comment.trim()) return;
 
-  try {
-    const success = await postComment({ postId, clerkUserId, commentText: comment });
-    if (success) {
-      setComment("");
-      if (onCommentChanged) onCommentChanged();
-      await fetchComments();
-    } else {
+    try {
+      const success = await postComment({ postId, clerkUserId, commentText: comment });
+      if (success) {
+        setComment("");
+        if (onCommentChanged) onCommentChanged();
+        await fetchComments();
+      } else {
+        alert("Failed to post comment");
+      }
+    } catch (err) {
+      console.error(err);
       alert("Failed to post comment");
     }
-  } catch (err) {
-    console.error(err);
-    alert("Failed to post comment");
-  }
-};
+  };
 
   if (!isSignedIn) return null;
 
