@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { getInternalUserId, getComments } from "@/lib/fetch/client/GET";
+import { deleteComment } from "@/lib/fetch/client/DELETE";
 
 interface Comment {
   id: string;
@@ -79,19 +80,21 @@ const fetchComments = async () => {
   }
 };
 
-  // Delete a comment
-  const handleDelete = async (commentId: string) => {
-    if (!confirm("Are you sure you want to delete this comment?")) return;
-    try {
-      await fetch(`/api/comments?id=${commentId}&clerkUserId=${clerkUserId}`, {
-        method: "DELETE",
-      });
-      await fetchComments(); 
-    } catch (err) {
-      console.error(err);
+const handleDelete = async (commentId: string) => {
+  if (!confirm("Are you sure you want to delete this comment?")) return;
+
+  try {
+    const success = await deleteComment(commentId, clerkUserId);
+    if (success) {
+      await fetchComments();
+    } else {
       alert("Failed to delete comment");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Failed to delete comment");
+  }
+};
 
   // Fetch on drawer open
   React.useEffect(() => {
