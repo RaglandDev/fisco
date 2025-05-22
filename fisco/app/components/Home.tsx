@@ -9,14 +9,11 @@ interface HomeProps {
   offset: number
 }
 
-// app/page.tsx (or wherever)
 export async function fetchPosts(offset: number) {
-  // getHomeData already returns { postData: Post[] } or null
-  const result = (await getHomeData(offset + POSTS_PER_PAGE, 0)) as { postData: Post[] } | null
-  // if you really only want the array, but still wrap it:
-  const postData = result?.postData ?? []
-  return { postData }
-}
+  const result = (await getHomeData(POSTS_PER_PAGE, offset)) as { postData: Post[] } | null;
+  const postData = result?.postData ?? [];
+  return { postData };}
+
 
 export default async function Home({ offset }: HomeProps) {
   const data = await fetchPosts(offset)

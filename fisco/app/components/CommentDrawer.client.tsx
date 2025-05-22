@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { getInternalUserId, getComments } from "@/lib/fetch/client/GET";
 import { deleteComment } from "@/lib/fetch/client/DELETE";
+import { postComment } from "@/lib/fetch/client/POST";
 
 interface Comment {
   id: string;
@@ -108,30 +109,24 @@ const handleDelete = async (commentId: string) => {
     setComment(e.target.value);
   };
 
-  // Submit a comment
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!comment.trim()) return;
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!comment.trim()) return;
 
-    try {
-      await fetch("/api/comments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          postId,
-          clerkUserId,
-          commentText: comment,
-        }),
-      });
-
+  try {
+    const success = await postComment({ postId, clerkUserId, commentText: comment });
+    if (success) {
       setComment("");
       if (onCommentChanged) onCommentChanged();
-      await fetchComments(); 
-    } catch (err) {
-      console.error(err);
+      await fetchComments();
+    } else {
       alert("Failed to post comment");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Failed to post comment");
+  }
+};
 
   if (!isSignedIn) return null;
 
