@@ -152,7 +152,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
     }
 
     loadMorePosts()
-  }, [posts.length, currentPostIndex])
+  }, [currentPostIndex])
 
   const { user } = useUser()
 

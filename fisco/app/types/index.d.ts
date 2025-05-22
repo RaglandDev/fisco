@@ -1,5 +1,5 @@
 // global types go here
-interface Tag {
+export type Tag = {
     x: number,
     y: number,
     label: string

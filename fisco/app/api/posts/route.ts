@@ -5,7 +5,7 @@ const sql = neon(process.env.DATABASE_URL!);
 
 type PostRow = {
   id: string;
-  image_data: string;
+  s3_url: string;
 };
 
 export async function POST(req: Request) {
@@ -17,18 +17,18 @@ export async function POST(req: Request) {
       const ids = body.ids;
       if (ids.length === 0) return NextResponse.json({ posts: [] });
 
-      const result = await sql`
+      const result = await sql<PostRow[]>`
         SELECT 
           p.id,
-          encode(i.data, 'base64') AS image_data
+          i.s3_url
         FROM posts p
         JOIN images i ON p.fk_image_id = i.id
         WHERE p.id = ANY(${ids})
       `;
 
-      const posts = (result as PostRow[]).map((row) => ({
+      const posts = result.map((row) => ({
         id: row.id,
-        image_url: `data:image/jpeg;base64,${row.image_data}`,
+        image_url: row.s3_url,
       }));
 
       return NextResponse.json({ posts });
@@ -36,6 +36,7 @@ export async function POST(req: Request) {
 
     // === Case 2: Create a new post ===
     const { fk_image_id, clerk_user_id, tags } = body;
+    console.log(body)
 
     if (!fk_image_id || !clerk_user_id) {
       return NextResponse.json(
@@ -92,7 +93,7 @@ export async function DELETE(req: Request) {
     await sql`DELETE FROM comments WHERE post_id = ${postId}`;
     // Delete the post itself
     await sql`DELETE FROM posts WHERE id = ${postId}`;
-    // Delete the associated image
+    // Delete the associated image row (NOTE: this does not remove from S3 itself)
     await sql`DELETE FROM images WHERE id = ${imageId}`;
 
     return NextResponse.json({ success: true });

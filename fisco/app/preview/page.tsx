@@ -86,6 +86,33 @@ export default function PreviewPage() {
     return new File([blob], filename, { type: mimeType })
   }
 
+async function uploadToS3(file: any) {
+  const fileType = encodeURIComponent(file.type);
+  const response = await fetch(`/api/media?fileType=${fileType}`);
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const { uploadUrl, key, url } = data; // grab public URL
+
+  const uploadResponse = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': file.type,
+    },
+    body: file,
+  });
+
+  if (!uploadResponse.ok) {
+    throw new Error(`S3 upload failed! status: ${uploadResponse.status}`);
+  }
+
+  return { key, url }; // return both
+}
+
+
   const handleSubmit = async () => {
     if (!imageUrl || !mimeType) {
       setError("Image data missing. Cannot submit.")
@@ -107,20 +134,32 @@ export default function PreviewPage() {
       const formData = new FormData()
       formData.append("file", imageFile)
 
-
-      const imageUploadResponse = await fetch("/api/images", {
-        method: "POST",
-        body: formData,
-      })
-      if (!imageUploadResponse.ok) {
-        const errorText = await imageUploadResponse.text()
-        throw new Error(`Image upload failed: ${errorText || imageUploadResponse.statusText}`)
+      // Upload to S3 and get key
+      const file = formData.get('file')
+      if (!file) {
+        return null
       }
-      const imageResult = await imageUploadResponse.json()
-      const imageId = imageResult.id
-      if (!imageId) throw new Error("Image ID not received after upload.")
+      const s3data = await uploadToS3(file) 
+      // 
+
+      // store key and url in db
+      const storeS3DataResponse = await fetch("/api/images", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",  
+        },
+        body: JSON.stringify(s3data),          
+      });
+      if (!storeS3DataResponse.ok) {
+        const errorText = await storeS3DataResponse.text()
+        throw new Error(`Storing s3 image data failed: ${errorText || storeS3DataResponse.statusText}`)
+      }
+      const storeS3DataResult = await storeS3DataResponse.json()
+      const imageId = storeS3DataResult.id
+      if (!imageId) throw new Error("S3 data ID not received after upload.")
       // 3. Create Post with imageId
       const tagData = JSON.stringify(pins)
+    console.log(user)
       const postResponse = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
