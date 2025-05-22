@@ -1,4 +1,4 @@
-import { getHomeData } from "@/lib/getHomeData"
+import { getHomeData } from "@/lib/fetch/getHomeData"
 import type { Post } from "@/types/index"
 import Feed from "@/components/Feed.client"
 import DropDownMenu from "@/components/DropDown.client"
