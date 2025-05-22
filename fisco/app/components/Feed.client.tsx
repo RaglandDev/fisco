@@ -142,7 +142,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
   const fetchMorePosts = async () => {
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint?limit=${POSTS_PER_PAGE}&offset=${offset + posts.length}`,
+        `/api/testendpoint?limit=${POSTS_PER_PAGE}&offset=${offset + posts.length}`,
       )
       const data = await res.json()
       const newPosts: Post[] = data.posts
