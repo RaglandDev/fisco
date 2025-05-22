@@ -97,7 +97,7 @@ export default function PreviewPage() {
 
   async function uploadToS3(file: File) {
     const fileType = encodeURIComponent(file.type)
-    const response = await fetch(`/api/media?fileType=${fileType}`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/media?fileType=${fileType}`)
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
@@ -156,7 +156,7 @@ export default function PreviewPage() {
       //
 
       // store key and url in db
-      const storeS3DataResponse = await fetch("/api/images", {
+      const storeS3DataResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/images`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

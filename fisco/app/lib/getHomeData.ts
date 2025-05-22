@@ -5,8 +5,7 @@ export async function getHomeData(limit: number = 2, offset: number = 0) {
   let postData = null;  // Declare here to be accessible later
 
   try {
-    const baseUrl = "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/api/testendpoint?limit=${limit}&offset=${offset}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint?limit=${limit}&offset=${offset}`, {
       cache: "no-store",
     });
 

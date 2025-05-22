@@ -189,7 +189,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
     const fetchUserUUID = async () => {
       if (user?.id) {
         try {
-          const response = await fetch(`/api/users/me?clerkUserId=${user.id}`)
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me?clerkUserId=${user.id}`)
           if (response.ok) {
             const data = await response.json()
             if (data.internalUserId) {
@@ -255,7 +255,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
     // Make an API call to update the likes array for the post
     try {
       // Determines whether to like/remove like from the post
-      await fetch(`/api/testendpoint`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint`, {
         method: hasLiked ? "DELETE" : "POST",
         headers: {
           "Content-Type": "application/json",
@@ -342,7 +342,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
     // Make an API call to update the saves array for the post
     try {
       // Determines whether to save/remove save from the post
-      await fetch(`/api/profile`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
         method: hasSaved ? "DELETE" : "POST",
         headers: {
           "Content-Type": "application/json",
