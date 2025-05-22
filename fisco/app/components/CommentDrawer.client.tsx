@@ -11,6 +11,7 @@ import {
   DrawerFooter,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { getInternalUserId } from "@/lib/fetch/client/GET";
 
 interface Comment {
   id: string;
@@ -48,17 +49,17 @@ export default function CommentDrawer({
     }
   }, [open, isSignedIn, isLoaded, router, onOpenChange]);
 
-  // Get internal user ID from backend
-  React.useEffect(() => {
-    const getInternalUserId = async () => {
-      if (clerkUserId) {
-        const res = await fetch(`/api/users/me?clerkUserId=${clerkUserId}`);
-        const data = await res.json();
-        setInternalUserId(data.internalUserId);
-      }
-    };
-    getInternalUserId();
-  }, [clerkUserId]);
+    React.useEffect(() => {
+      const getId = async () => {
+        if (clerkUserId) {
+          const id = await getInternalUserId(clerkUserId);
+          if (id) {
+            setInternalUserId(id);
+          }
+        }
+      };
+      getId();
+    }, [clerkUserId]);
 
   // Fetch all comments
   const fetchComments = async () => {
