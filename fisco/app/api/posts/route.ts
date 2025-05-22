@@ -3,10 +3,6 @@ import { NextResponse } from "next/server";
 
 const sql = neon(process.env.DATABASE_URL!);
 
-type PostRow = {
-  id: string;
-  s3_url: string;
-};
 
 export async function POST(req: Request) {
   try {
@@ -17,7 +13,7 @@ export async function POST(req: Request) {
       const ids = body.ids;
       if (ids.length === 0) return NextResponse.json({ posts: [] });
 
-      const result = await sql<PostRow[]>`
+      const result = await sql`
         SELECT 
           p.id,
           i.s3_url
@@ -36,7 +32,6 @@ export async function POST(req: Request) {
 
     // === Case 2: Create a new post ===
     const { fk_image_id, clerk_user_id, tags } = body;
-    console.log(body)
 
     if (!fk_image_id || !clerk_user_id) {
       return NextResponse.json(

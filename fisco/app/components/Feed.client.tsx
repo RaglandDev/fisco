@@ -56,26 +56,54 @@ const getLabelPosition = (x: number, y: number) => {
   return position
 }
 
-// Helper function to format timestamp to simplified relative time
-const formatRelativeTime = (dateString: string | Date) => {
-  const date = typeof dateString === "string" ? new Date(dateString) : dateString
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMinutes = Math.floor(diffMs / (1000 * 60))
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  const diffWeeks = Math.floor(diffDays / 7)
+// Helper: parse an ISO‐like timestamp *as UTC* even if it has no "Z"  
+function parseAsUTC(dateString: string): Date {  
+  // Pull out the date‐time components  
+  const m = dateString.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d+)?$/  
+  );  
+  if (!m) return new Date(dateString); // fallback to default parsing  
 
-  if (diffMinutes < 60) {
-    return `${diffMinutes}m`
-  } else if (diffHours < 24) {
-    return `${diffHours}h`
-  } else if (diffDays < 7) {
-    return `${diffDays}d`
-  } else {
-    return `${diffWeeks}w`
-  }
+  const [ , Y, Mo, D, h, mnt, s ] = m.map(Number);  
+  // Date.UTC interprets args as UTC  
+  return new Date(Date.UTC(Y, Mo - 1, D, h, mnt, s));  
 }
+
+function convertUTCDateToLocalDate(date: Date) {
+    const newDate = new Date(date.getTime()+date.getTimezoneOffset()*60*1000);
+
+    const offset = date.getTimezoneOffset() / 60;
+    const hours = date.getHours();
+
+    newDate.setHours(hours - offset);
+
+    return newDate;   
+}
+
+export const formatRelativeTime = (dateString: string | Date) => {
+  // 1) Turn strings into UTC‐based Date objects  
+  const date =
+    typeof dateString === "string"
+      ? parseAsUTC(dateString)
+      : dateString;
+
+  const now = new Date();
+  const diffMs = now.getTime() - convertUTCDateToLocalDate(date).getTime();
+
+  // 2) Break down into units  
+  const diffMinutes = Math.floor(diffMs / 60_000);
+  const diffHours   = Math.floor(diffMs / 3_600_000);
+  const diffDays    = Math.floor(diffMs / 86_400_000);
+  const diffWeeks   = Math.floor(diffDays / 7);
+
+  // 3) Format  
+  if (diffMinutes < 1)  return `Just now`;  
+  if (diffMinutes < 60) return `${diffMinutes}m`;  
+  if (diffHours   < 24) return `${diffHours}h`;  
+  if (diffDays    < 7)  return `${diffDays}d`;  
+                        return `${diffWeeks}w`;
+}
+
 
 const POSTS_PER_PAGE = 5
 
@@ -372,7 +400,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
                 <Image
                   data-testid="Post image"
                   src={
-                    `data:${post.image_data.startsWith("/9j/") ? "image/jpeg" : "image/png"};base64,${post.image_data}` ||
+                    `${post.image_url}` ||
                     "/placeholder.svg"
                   }
                   alt={"alt"}

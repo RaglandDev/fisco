@@ -13,7 +13,7 @@ export type Post = {
     likes: Array<string>;
     comments: Array<string>;
     saves: Array<string>;
-    image_data: string;
+    image_url: string;
     user_data?: string;
     first_name: string | "Unknown";
     last_name: string | "Unknown";

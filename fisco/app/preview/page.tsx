@@ -28,7 +28,7 @@ const formSchema = z.object({
 })
 
 export default function PreviewPage() {
-  const { user } = useUser()
+  const { user, isLoaded } = useUser()
   const router = useRouter()
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -49,6 +49,15 @@ export default function PreviewPage() {
   })
 
   useEffect(() => {
+    // Only proceed if user authentication is loaded
+    if (!isLoaded) return
+
+    // If loaded but no user, redirect to login
+    if (isLoaded && !user) {
+      router.push("/sign-in")
+      return
+    }
+
     try {
       const dataUrl = sessionStorage.getItem("previewImageData")
       let mime = sessionStorage.getItem("previewImageType")
@@ -65,7 +74,7 @@ export default function PreviewPage() {
     } catch (_error) {
       setError("Could not retrieve image data. Please try again.")
     }
-  }, [])
+  }, [isLoaded, user, router])
 
   // Set form values when editing starts
   useEffect(() => {
@@ -86,34 +95,38 @@ export default function PreviewPage() {
     return new File([blob], filename, { type: mimeType })
   }
 
-async function uploadToS3(file: any) {
-  const fileType = encodeURIComponent(file.type);
-  const response = await fetch(`/api/media?fileType=${fileType}`);
+  async function uploadToS3(file: File) {
+    const fileType = encodeURIComponent(file.type)
+    const response = await fetch(`/api/media?fileType=${fileType}`)
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    const { uploadUrl, key, url } = data // grab public URL
+
+    const uploadResponse = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type,
+      },
+      body: file,
+    })
+
+    if (!uploadResponse.ok) {
+      throw new Error(`S3 upload failed! status: ${uploadResponse.status}`)
+    }
+
+    return { key, url } // return both
   }
-
-  const data = await response.json();
-  const { uploadUrl, key, url } = data; // grab public URL
-
-  const uploadResponse = await fetch(uploadUrl, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': file.type,
-    },
-    body: file,
-  });
-
-  if (!uploadResponse.ok) {
-    throw new Error(`S3 upload failed! status: ${uploadResponse.status}`);
-  }
-
-  return { key, url }; // return both
-}
-
 
   const handleSubmit = async () => {
+    if (!user) {
+      setError("User not authenticated. Please sign in.")
+      return
+    }
+
     if (!imageUrl || !mimeType) {
       setError("Image data missing. Cannot submit.")
       return
@@ -135,21 +148,21 @@ async function uploadToS3(file: any) {
       formData.append("file", imageFile)
 
       // Upload to S3 and get key
-      const file = formData.get('file')
+      const file = formData.get("file")
       if (!file) {
         return null
       }
-      const s3data = await uploadToS3(file) 
-      // 
+      const s3data = await uploadToS3(file as File)
+      //
 
       // store key and url in db
       const storeS3DataResponse = await fetch("/api/images", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",  
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(s3data),          
-      });
+        body: JSON.stringify(s3data),
+      })
       if (!storeS3DataResponse.ok) {
         const errorText = await storeS3DataResponse.text()
         throw new Error(`Storing s3 image data failed: ${errorText || storeS3DataResponse.statusText}`)
@@ -159,14 +172,13 @@ async function uploadToS3(file: any) {
       if (!imageId) throw new Error("S3 data ID not received after upload.")
       // 3. Create Post with imageId
       const tagData = JSON.stringify(pins)
-    console.log(user)
       const postResponse = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fk_image_id: imageId,
-          clerk_user_id: user?.id,
-          tags: tagData
+          clerk_user_id: user.id,
+          tags: tagData,
         }),
       })
       if (!postResponse.ok) {
@@ -188,10 +200,8 @@ async function uploadToS3(file: any) {
 
     // Get click position relative to the image container
     const imageRect = imageContainerRef.current.getBoundingClientRect()
-    const relativeX = (e.clientX - imageRect.left) / imageRect.width 
-    const relativeY = (e.clientY - imageRect.top) / imageRect.height 
-
-
+    const relativeX = (e.clientX - imageRect.left) / imageRect.width
+    const relativeY = (e.clientY - imageRect.top) / imageRect.height
 
     // Add new pin with empty label
     const newPin: Pin = { x: relativeX, y: relativeY, label: "" }
@@ -313,6 +323,25 @@ async function uploadToS3(file: any) {
     return position
   }
 
+  // Show loading state while user authentication is loading
+  if (!isLoaded) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-4">
+        <Loader2 className="h-8 w-8 animate-spin mb-2" />
+        <p>Loading user data...</p>
+      </div>
+    )
+  }
+
+  // Redirect if no user (this is a fallback, the useEffect should handle this)
+  if (isLoaded && !user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-red-500 p-4">
+        <p>You must be signed in to view this page.</p>
+      </div>
+    )
+  }
+
   if (!imageUrl) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-black text-red-500 p-4">
@@ -351,9 +380,13 @@ async function uploadToS3(file: any) {
                 }}
                 onClick={(e) => handlePinClick(index, e)}
               >
-              {/* Add some margin so tag icon looks like the right position*/}
+                {/* Add some margin so tag icon looks like the right position*/}
                 <Tag
-                  className={`h-6 w-6 ${!isTagMode ? "text-red-500 fill-red-500/80" : "text-red-500 fill-red-500/50 group-hover:fill-red-500/80"} transition-all`}
+                  className={`h-6 w-6 ${
+                    !isTagMode
+                      ? "text-red-500 fill-red-500/80"
+                      : "text-red-500 fill-red-500/50 group-hover:fill-red-500/80"
+                  } transition-all`}
                 />
 
                 {/* Dynamically positioned pin label */}
