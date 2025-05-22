@@ -108,9 +108,6 @@ export default function PreviewPage() {
 
     const uploadResponse = await fetch(uploadUrl, {
       method: "PUT",
-      headers: {
-        "Content-Type": file.type,
-      },
       body: file,
     })
 
@@ -158,9 +155,6 @@ export default function PreviewPage() {
       // store key and url in db
       const storeS3DataResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/images`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(s3data),
       })
       if (!storeS3DataResponse.ok) {
@@ -174,7 +168,6 @@ export default function PreviewPage() {
       const tagData = JSON.stringify(pins)
       const postResponse = await fetch("/api/posts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fk_image_id: imageId,
           clerk_user_id: user.id,

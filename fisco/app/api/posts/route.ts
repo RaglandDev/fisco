@@ -11,7 +11,11 @@ export async function POST(req: Request) {
     // === Case 1: Fetch posts by array of IDs ===
     if (Array.isArray(body.ids)) {
       const ids = body.ids;
-      if (ids.length === 0) return NextResponse.json({ posts: [] });
+      if (ids.length === 0) return NextResponse.json({ posts: [] }, {headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
 
       const result = await sql`
         SELECT 
@@ -27,7 +31,11 @@ export async function POST(req: Request) {
         image_url: row.s3_url,
       }));
 
-      return NextResponse.json({ posts });
+      return NextResponse.json({ posts }, {headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
     }
 
     // === Case 2: Create a new post ===
@@ -61,7 +69,11 @@ export async function POST(req: Request) {
       throw new Error("Failed to create post");
     }
 
-    return NextResponse.json({ id: postId });
+    return NextResponse.json({ id: postId }, {headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
 
   } catch (error) {
     console.error("Post creation/fetch error:", error);
@@ -91,7 +103,11 @@ export async function DELETE(req: Request) {
     // Delete the associated image row (NOTE: this does not remove from S3 itself)
     await sql`DELETE FROM images WHERE id = ${imageId}`;
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, {headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
   } catch (error) {
     console.error("Delete post error:", error);
     return NextResponse.json({ error: "Failed to delete post" }, { status: 500 });

@@ -45,7 +45,11 @@ export async function POST(req: Request) {
           // Step 4: Return the saved_galleries object
           return NextResponse.json({
             saved_galleries: updatedObject
-          });
+          }, {headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
         }
     
         // If no post_id provided, just return current saved_posts
@@ -55,7 +59,11 @@ export async function POST(req: Request) {
     
         return NextResponse.json({
           saved_galleries: result[0]?.saved_posts || { "Saved Posts": [] }
-        });
+        }, {headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
     
       } catch (error) {
         console.error("Error saving to Saved Posts:", error);
@@ -105,7 +113,11 @@ export async function DELETE(req: Request) {
     // Step 5: Return updated saved_galleries object
     return NextResponse.json({
       saved_galleries: updatedObject
-    });
+    }, { headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
 
   } catch (error) {
     console.error("Error unsaving post:", error);

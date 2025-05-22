@@ -34,7 +34,11 @@ export async function POST(req: NextRequest) {
       RETURNING *;
     `;
 
-    return NextResponse.json(result[0]);
+    return NextResponse.json(result[0], {headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
   } catch (err) {
     return NextResponse.json({ error: "DB error", detail: String(err) }, { status: 500 });
   }
@@ -63,7 +67,11 @@ export async function GET(req: NextRequest) {
       user_id: row.user_id,
     }));
 
-    return NextResponse.json(serialized);
+    return NextResponse.json(serialized, {headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
   } catch (err) {
     return NextResponse.json({ error: "DB error", detail: String(err) }, { status: 500 });
   }
@@ -105,7 +113,11 @@ export async function DELETE(req: NextRequest) {
       DELETE FROM comments WHERE id = ${commentId}
     `;
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, {headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
   } catch (err) {
     return NextResponse.json({ error: "DB error", detail: String(err) }, { status: 500 });
   }

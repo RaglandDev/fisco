@@ -257,9 +257,6 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
       // Determines whether to like/remove like from the post
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint`, {
         method: hasLiked ? "DELETE" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ post_id, userId }), // send ID in body, not path
       })
     } catch (error) {
@@ -344,9 +341,6 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
       // Determines whether to save/remove save from the post
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
         method: hasSaved ? "DELETE" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ post_id, userId }), // send ID in body, not path
       })
     } catch (error) {
@@ -600,7 +594,6 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
                 try {
                   const res = await fetch("/api/posts", {
                     method: "DELETE",
-                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ postId: postToDelete }),
                   })
                   if (res.ok) {

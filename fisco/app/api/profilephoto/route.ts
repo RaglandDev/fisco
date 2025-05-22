@@ -46,7 +46,11 @@ export async function POST(req: Request) {
     return NextResponse.json({
       id: imageId,
       image_data: imageResult[0]?.image_data || null,
-    });
+    }, {headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json({ error: "Failed to upload or update user" }, { status: 500 });
@@ -63,15 +67,22 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = await sql`
-      SELECT encode(images.data, 'base64') as image_data
+      SELECT image_url
       FROM users
-      LEFT JOIN images ON users.fk_image_id = images.id
-      WHERE users.clerk_user_id = ${userId};
+      WHERE clerk_user_id = ${userId};
     `;
 
-    return NextResponse.json({ image_data: result[0]?.image_data || null });
+    return NextResponse.json({ image_url: result[0]?.image_url || null }, {headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
   } catch (error) {
     console.error("Failed to fetch profile image:", error);
-    return NextResponse.json({ error: "Failed to fetch profile image" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch profile image" }, { status: 500,  headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    } });
   }
 }

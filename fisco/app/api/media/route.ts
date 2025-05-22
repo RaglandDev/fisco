@@ -37,5 +37,9 @@ export async function GET(req: NextRequest) {
     uploadUrl,
     key: Key,
     url: publicUrl
-  });
+  }, {headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
 }

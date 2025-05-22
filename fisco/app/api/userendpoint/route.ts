@@ -26,10 +26,10 @@ export async function GET(req: Request) {
         posts.created_at,
         posts.likes,
         posts.comments,
-        encode(images.data, 'base64') AS image_data  -- Base64 image data for posts
+        images.s3_key AS image_data 
       FROM users
       LEFT JOIN posts ON posts.fk_author_id = users.id
-      LEFT JOIN images ON posts.fk_image_id = images.id  -- Join images for posts
+      LEFT JOIN images ON posts.fk_image_id = images.id  
       WHERE users.clerk_user_id = ${userId}
     `;
 
@@ -50,7 +50,7 @@ export async function GET(req: Request) {
       created_at: post.created_at,
       likes: post.likes,
       comments: post.comments,
-      image_data: post.image_data,  // Base64 encoded image data
+      image_data: post.image_data,  
     }));
 
     // Return the user data and their posts
@@ -62,7 +62,11 @@ export async function GET(req: Request) {
         image_url: user.image_url
       },
       posts: posts.length > 0 ? posts : []  // Ensure that posts are returned, even if empty
-    });
+    }, {headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
   } catch (error) {
     console.error('Error fetching user data or posts:', error);
     return NextResponse.json(

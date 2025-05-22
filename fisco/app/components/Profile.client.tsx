@@ -57,9 +57,10 @@ const Profile: React.FC = () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profilephoto?user_id=${userId}`);
       const data = await res.json();
-      if (data.image_data) {
+      console.log(data.image_url)
+      if (data.image_url) {
         setUserData(prev =>
-          prev ? { ...prev, image_data: data.image_data } : prev
+          prev ? { ...prev, image_data: data.image_url } : prev
         );
       }
     } catch (err) {
@@ -71,17 +72,16 @@ const Profile: React.FC = () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
       });
 
       const data = await response.json();
       const savedIds = data.saved_galleries?.["Saved Posts"] || [];
+      console.log(savedIds)
 
       if (savedIds.length > 0) {
         const postRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ids: savedIds })
         });
 
@@ -125,7 +125,7 @@ const Profile: React.FC = () => {
   if (!userData && isLoaded) return <div>Loading...</div>;
 
   const imageSrc = userData?.image_data
-    ? `data:image/jpeg;base64,${userData.image_data}`
+    ? userData.image_data
     : null;
 
   return (

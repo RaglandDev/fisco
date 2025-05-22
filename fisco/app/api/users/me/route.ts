@@ -20,7 +20,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ internalUserId: result[0].id });
+    return NextResponse.json({ internalUserId: result[0].id }, {headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    }});
   } catch (err) {
     return NextResponse.json({ error: "DB error", detail: String(err) }, { status: 500 });
   }
