@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import DropDownMenu from "@/components/DropDown.client";
 import { useAuth } from '@clerk/nextjs';
 import { Plus } from 'lucide-react';
+import Link from 'next/link';
 
 type SavedPost = {
   id: string;
@@ -124,9 +125,7 @@ const Profile: React.FC = () => {
   if (error) return <div>{error}</div>;
   if (!userData && isLoaded) return <div>Loading...</div>;
 
-  const imageSrc = userData?.image_data
-    ? userData.image_data
-    : null;
+  const imageSrc = userData?.image_data ? userData.image_data : null;
 
   return (
     <>
@@ -175,16 +174,20 @@ const Profile: React.FC = () => {
           <h2 className="text-xl font-semibold mb-6">Saved Posts</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl w-full">
             {savedPosts.map((post) => (
-              <div
-                key={post.id}
-                className="bg-white text-black p-4 rounded-lg border border-black shadow-md"
-              >
-                <img
-                  src={post.image_url}
-                  alt={`Post ${post.id}`}
-                  className="w-full h-64 object-contain rounded"
-                />
-              </div>
+              <Link href={`/?postId=${post.id}`} key={post.id}>
+                <div className="cursor-pointer rounded group">
+                  <div className="aspect-[4/5] overflow-hidden rounded">
+                    <img
+                      src={post.image_url}
+                      alt={`Post ${post.id}`}
+                      className="w-full h-full object-cover transform transition-transform duration-300 ease-in-out group-hover:scale-105"
+                    />
+                  </div>
+                  {post.title && (
+                    <p className="mt-2 text-center text-sm font-medium text-black">{post.title}</p>
+                  )}
+                </div>
+              </Link>
             ))}
           </div>
         </div>
