@@ -89,23 +89,30 @@ export default function DropDownMenu() {
             </button>
 
             {/* Login/Logout Button */}
-            {!userId ? (
-              <Link
-                href="/login"
-                aria-label="Login button"
-                className="flex items-center gap-2 p-2 w-48 text-left text-white"
-              >
-                <LogIn className="w-6 h-6" /> Login
-              </Link>
-            ) : (
-              <button
-                onClick={handleLogout} // Logout functionality using signOut
-                aria-label="Sign out button"
-                className="flex items-center gap-2 p-2 w-48 text-left text-white"
-              >
-                <LogOut className="w-6 h-6" /> Logout {/* LogOut icon */}
-              </button>
-            )}
+            <div className="relative w-48 h-10">
+                <div 
+                    key={userId ? "logout" : "login"}
+                    className="absolute inset-0 flex items-center gap-2 p-2 text-left text-white transition-all duration-300 ease-in-out opacity-0 animate-fadeIn"
+                >
+                {!userId ? (
+                    <Link
+                        href="/login"
+                        aria-label="Login button"
+                        className="flex items-center gap-2 w-48 text-left text-white"
+                    >
+                        <LogIn className="w-6 h-6" /> Login
+                    </Link>
+                ) : (
+                <button
+                    onClick={handleLogout} // Logout functionality using signOut
+                    aria-label="Sign out button"
+                    className="flex items-center gap-2 w-48 text-left text-white"
+                >
+                    <LogOut className="w-6 h-6" /> Logout {/* LogOut icon */}
+                </button>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
