@@ -19,7 +19,7 @@ import { Heart, MessageCircle, User, Bookmark, Trash2, Tag } from "lucide-react"
 import type { Post } from "@/types"
 import { useSearchParams } from "next/navigation";
 import Link from "next/link"
-import { formatRelativeTime } from "@/lib/util"s
+import { formatRelativeTime } from "@/lib/util"
 
 // Helper function to determine label position based on pin position
 const getLabelPosition = (x: number, y: number) => {
