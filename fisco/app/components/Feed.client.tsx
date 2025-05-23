@@ -58,8 +58,6 @@ const getLabelPosition = (x: number, y: number) => {
   return position
 }
 
-<<<<<<< HEAD
-=======
 // Helper: parse an ISO‐like timestamp *as UTC* even if it has no "Z"  
 function parseAsUTC(dateString: string): Date {
   // Pull out the date‐time components  
@@ -108,7 +106,6 @@ export const formatRelativeTime = (dateString: string | Date) => {
   return `${diffWeeks}w`;
 }
 
->>>>>>> cea69f9eb21f0f7b3f4632333afad6f35306cbf3
 
 const POSTS_PER_PAGE = 5
 
