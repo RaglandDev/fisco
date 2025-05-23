@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSignUp } from "@clerk/nextjs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import zxcvbn from "zxcvbn";
 
 export default function CustomSignUpPage() {
   const { signUp, isLoaded, setActive: setClientActive } = useSignUp();
@@ -12,10 +13,18 @@ export default function CustomSignUpPage() {
   const [pendingVerification, setPendingVerification] = useState(false);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
+  const [passwordScore, setPasswordScore] = useState(0);
+  const [passwordFeedback, setPasswordFeedback] = useState("");
+
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     if (!isLoaded || !signUp) return;
+      
+    if (passwordScore < 3) {
+        setError("Password is too weak. Please choose a stronger password.");
+        return;
+    }
 
     try {
       await signUp.create({ emailAddress: email, password: password });
@@ -62,10 +71,25 @@ export default function CustomSignUpPage() {
           <Input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={
+                (e) => {
+                    const val = e.target.value;
+                    setPassword(val);
+                    const result = zxcvbn(val);
+                    setPasswordScore(result.score);
+                    setPasswordFeedback(result.feedback.suggestions.join(" "));
+                }
+            }
             placeholder="Password"
             required
           />
+          {password && (
+            <p className={`text-sm ${passwordScore < 3 ? "text-destructive" : "text-green-500"}`}>
+                Password strength: {["Too Weak", "Weak", "Fair", "Good", "Strong"][passwordScore]}.
+                {passwordFeedback && ` Suggestions: ${passwordFeedback}`}
+            </p>
+            )
+        }
           {error && <p className="text-destructive text-sm">{error}</p>}
           <Button type="submit">Create Account</Button>
         </form>
