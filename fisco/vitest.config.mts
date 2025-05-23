@@ -22,6 +22,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    setupFiles: ['./__tests__/components/setup-tests.ts'],
     css: false,
     env: loadEnv('', process.cwd(), ''),
     exclude: [
