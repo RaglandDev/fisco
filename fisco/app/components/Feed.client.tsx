@@ -433,7 +433,9 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
                     </div>
                     <div className="flex items-center">
                       {/* Profile Button with Conditional Redirect */}
-                      <Link href={user ? "/profile" : "/login"}>
+                      {/* redirect with userId to profile */}
+                      {/* the question is can I edit the testendpoint with post data so that I can redirect to their profile with their userId */}
+                      <Link href={user ? `/profile/${post.clerk_user_id}` : "/login"}>
                         <button className="font-semibold text-white bg-transparent border-none cursor-pointer">
                           @{post.first_name || "Unknown"} {post.last_name || "User"}
                         </button>

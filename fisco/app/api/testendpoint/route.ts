@@ -15,6 +15,7 @@ export async function GET(req: Request) {
       users.first_name,
       users.last_name,
       users.email,
+      users.clerk_user_id,
       (
         SELECT COUNT(*)::INT 
         FROM comments 
