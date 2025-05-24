@@ -18,6 +18,7 @@ export type Post = {
     first_name: string | "Unknown";
     last_name: string | "Unknown";
     email?: string;
+    clerk_user_id?: string;
     comment_count: number;
     tags: Array<Tag>
 };

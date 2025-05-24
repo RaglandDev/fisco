@@ -53,11 +53,12 @@ describe("Profile Component", () => {
   });
 
   it("should render the component without errors", async () => {
-    render(<Profile />);
+    render(<Profile userId="123" isOwner={true} />);
     await waitFor(() => {
       expect(screen.getByText("John Doe")).toBeDefined();
     });
   });
+
 
   // it("should render user data when fetched successfully", async () => {
   //   render(<Profile />);

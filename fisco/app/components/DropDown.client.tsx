@@ -74,7 +74,7 @@ export default function DropDownMenu() {
             </Link>
 
             {/* Profile Button - Conditional redirect */}
-            <Link href={userId ? "/profile" : "/login"}>
+            <Link href={userId ? `/profile/${userId}` : "/login"}>
               <button className="flex items-center gap-2 p-2 w-48 text-left text-white">
                 <User className="w-6 h-6" /> Profile
               </button>

@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import DropDownMenu from "@/components/DropDown.client";
-import { useAuth } from '@clerk/nextjs';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 
@@ -13,8 +12,12 @@ type SavedPost = {
   description?: string;
 };
 
-const Profile: React.FC = () => {
-  const { userId, isLoaded } = useAuth();
+type ProfileProps = {
+  userId: string;
+  isOwner: boolean;
+};
+
+const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [savedPosts, setSavedPosts] = useState<SavedPost[]>([]);
@@ -28,12 +31,12 @@ const Profile: React.FC = () => {
   } | null>(null);
 
   useEffect(() => {
-    if (userId && isLoaded) {
+    if (userId) {
       fetchUserData(userId);
       fetchProfileImage(userId);
       fetchSavedPosts(userId);
     }
-  }, [userId, isLoaded]);
+  }, [userId]);
 
   const fetchUserData = async (userId: string) => {
     try {
@@ -123,7 +126,7 @@ const Profile: React.FC = () => {
   };
 
   if (error) return <div>{error}</div>;
-  if (!userData && isLoaded) return <div>Loading...</div>;
+  if (!userData) return <div>Loading...</div>;
 
   const imageSrc = userData?.image_data ? userData.image_data : null;
 
@@ -133,29 +136,31 @@ const Profile: React.FC = () => {
       <div className="w-full bg-black text-white p-8 flex flex-col items-center space-y-6">
         <div className="flex items-center justify-center gap-6">
           <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white relative">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full h-full flex items-center justify-center bg-gray-800 hover:bg-gray-700"
-            >
-              {imageSrc ? (
-                <img
-                  src={imageSrc}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <Plus className="w-10 h-10 text-white opacity-70" />
-              )}
-            </button>
+            {isOwner ? (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full h-full flex items-center justify-center bg-gray-800 hover:bg-gray-700"
+              >
+                {imageSrc ? (
+                  <img src={imageSrc} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <Plus className="w-10 h-10 text-white opacity-70" />
+                )}
+              </button>
+            ) : (
+              imageSrc && <img src={imageSrc} alt="Profile" className="w-full h-full object-cover" />
+            )}
 
-            <input
-              id="profile-file-input"
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              ref={fileInputRef}
-              onChange={handleFileChange}
-            />
+            {isOwner && (
+              <input
+                id="profile-file-input"
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                ref={fileInputRef}
+                onChange={handleFileChange}
+              />
+            )}
           </div>
 
           <div className="text-center">
