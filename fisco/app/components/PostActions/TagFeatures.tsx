@@ -1,7 +1,7 @@
 "use client";
 
 import { Tag } from "lucide-react";
-import type { PostTag } from "@/types";
+import type { Tag as PostTag } from "@/types/index";
 
 // Props for the TagButton component
 interface TagButtonProps {

@@ -4,9 +4,8 @@ import { useState, useRef, useEffect } from "react"
 import CommentDrawer from "@/components/Comments/CommentDrawer"
 import Image from "next/image"
 import { useUser } from "@clerk/nextjs"
-import { useRouter } from "next/navigation"
 import { User, Loader2 } from "lucide-react"
-import type { Post } from "@/types"
+import type { Post } from "@/types/index"
 import { useSearchParams } from "next/navigation";
 import Link from "next/link"
 import { formatRelativeTime } from "@/lib/utils"
@@ -41,8 +40,6 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
   const [currentPostIndex, setCurrentPostIndex] = useState(0) // how deep into the feed you are
 
   const [tagsVisible, setTagsVisible] = useState(false)
-
-  const router = useRouter()
 
   const fetchMorePosts = async () => {
     try {

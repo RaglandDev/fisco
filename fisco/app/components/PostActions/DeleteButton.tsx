@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
-import type { Post } from "@/types";
+import type { Post } from "@/types/index";
 import {
   AlertDialog,
   AlertDialogContent,

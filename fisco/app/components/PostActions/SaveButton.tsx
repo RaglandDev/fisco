@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Bookmark } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import type { Post } from "@/types";
+import type { Post } from "@/types/index";
 
 interface SaveButtonProps {
   post: Post;

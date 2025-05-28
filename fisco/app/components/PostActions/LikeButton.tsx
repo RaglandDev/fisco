@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Heart } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import type { Post } from "@/types";
+import type { Post } from "@/types/index";
 
 interface LikeButtonProps {
   post: Post;
