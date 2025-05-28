@@ -234,42 +234,37 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
               {userData.first_name} {userData.last_name}
             </h1>
             <p className="text-sm">{userData.email}</p>
-          </div>
-        </div>
 
-        {isOwner && (
-          <div className="w-full max-w-3xl mt-4">
-            <div className="flex items-center">
-              <h2 className="text-lg font-semibold mr-2">Bio:</h2>
-              {isEditing ? (
+            {isEditing ? (
+              <>
                 <textarea
                   value={newBio || ''}
                   onChange={handleBioChange}
-                  className="w-full h-24 mt-2 p-2 border border-gray-300 rounded-md"
+                  className="w-full mt-2 p-2 border border-gray-300 rounded-md text-white"
                   maxLength={256}
                   placeholder="Write your bio here..."
                 />
-              ) : (
-                <p className="text-sm">
-                  {userData.bio ? userData.bio : 'Add Bio'}
-                </p>
-              )}
-              {isOwner && (
-                <button onClick={() => setIsEditing(!isEditing)} className="ml-2 text-blue-500">
-                  <Edit className="inline w-4 h-4" />
+                <button
+                  onClick={updateBio}
+                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md"
+                >
+                  Save Bio
                 </button>
-              )}
-            </div>
-            {isEditing && (
-              <button
-                onClick={updateBio}
-                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md"
-              >
-                Save Bio
-              </button>
+              </>
+            ) : (
+              (userData.bio || isOwner) && (
+                <div className="flex justify-center items-center gap-1 mt-2">
+                  <p className="text-sm">{userData.bio || 'Add Bio'}</p>
+                  {isOwner && (
+                    <button onClick={() => setIsEditing(true)} className="text-blue-400 hover:text-blue-300">
+                      <Edit className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              )
             )}
           </div>
-        )}
+        </div>
         <DropDownMenu />
       </div>
 
