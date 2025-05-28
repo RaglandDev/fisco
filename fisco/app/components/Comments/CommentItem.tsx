@@ -24,7 +24,9 @@ export default function CommentItem({ commentData, isOwner, onDelete }: CommentI
   return (
     <div className={commentItemStyles.container}>
       <div className={commentItemStyles.meta}>
-        <span className={commentItemStyles.username}>@ Username</span>
+        <span className={commentItemStyles.username}>
+          @{commentData.first_name || "Anonymous"} {commentData.last_name ?? ""}
+        </span>
         <span className={commentItemStyles.separator}>•</span>
         <span className={commentItemStyles.timestamp}>{relativeTimeStamp(commentData.created_at)}</span>
       </div>

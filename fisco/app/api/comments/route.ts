@@ -3,11 +3,13 @@ import { neon } from "@neondatabase/serverless";
 
 const sql = neon(process.env.DATABASE_URL!);
 
-interface CommentRow {
+interface CommentWithUser {
   id: string;
   comment_text: string;
   created_at: Date | null;
   user_id: string | null;
+  first_name: string | null;
+  last_name: string | null;
 }
 
 export async function POST(req: NextRequest) {
@@ -53,27 +55,41 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const result = (await sql`
-      SELECT id, comment_text, created_at, user_id
-      FROM comments
-      WHERE post_id = ${postId}
-      ORDER BY created_at ASC;
-    `) as CommentRow[];
+    const result = await sql`
+      SELECT 
+        c.id,
+        c.comment_text,
+        c.created_at,
+        c.user_id,
+        u.first_name,
+        u.last_name
+      FROM comments c
+      LEFT JOIN users u ON c.user_id = u.id
+      WHERE c.post_id = ${postId}
+      ORDER BY c.created_at ASC;
+    `;
 
-    const serialized = result.map((row) => ({
+    const serialized = (result as CommentWithUser[]).map((row) => ({
       id: row.id,
       comment_text: row.comment_text,
       created_at: row.created_at?.toISOString?.() ?? "",
-      user_id: row.user_id,
+      user_id: row.user_id ?? "",
+      first_name: row.first_name ?? "Anonymous",
+      last_name: row.last_name ?? "",
     }));
 
-    return NextResponse.json(serialized, {headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    }});
+    return NextResponse.json(serialized, {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    });
   } catch (err) {
-    return NextResponse.json({ error: "DB error", detail: String(err) }, { status: 500 });
+    return NextResponse.json(
+      { error: "DB error", detail: String(err) },
+      { status: 500 }
+    );
   }
 }
 

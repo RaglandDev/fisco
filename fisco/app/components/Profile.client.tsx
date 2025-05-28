@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-type SavedPost = {
+type Post = {
   id: string;
   image_url: string;
   title?: string;
@@ -21,7 +21,9 @@ type ProfileProps = {
 const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [savedPosts, setSavedPosts] = useState<SavedPost[]>([]);
+  const [savedPosts, setSavedPosts] = useState<Post[]>([]);
+  const [yourPosts, setYourPosts] = useState<Post[]>([]);
+  const [showSaved, setShowSaved] = useState(true);
 
   const [userData, setUserData] = useState<{
     first_name: string;
@@ -36,6 +38,7 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
       fetchUserData(userId);
       fetchProfileImage(userId);
       fetchSavedPosts(userId);
+      fetchYourPosts(userId);
     }
   }, [userId]);
 
@@ -44,10 +47,7 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/userendpoint?userId=${userId}`);
       const data = await response.json();
       if (data.user) {
-        setUserData({
-          ...data.user,
-          image_data: null,
-        });
+        setUserData({ ...data.user, image_data: null });
         setError(null);
       } else {
         setError('User not found');
@@ -63,9 +63,7 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profilephoto?user_id=${userId}`);
       const data = await res.json();
       if (data.image_url) {
-        setUserData(prev =>
-          prev ? { ...prev, image_data: data.image_url } : prev
-        );
+        setUserData(prev => prev ? { ...prev, image_data: data.image_url } : prev);
       }
     } catch (err) {
       console.error("Failed to fetch profile image:", err);
@@ -76,6 +74,7 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
       });
 
@@ -85,6 +84,7 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
       if (savedIds.length > 0) {
         const postRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts`, {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ids: savedIds })
         });
 
@@ -97,6 +97,28 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
       console.error("Failed to fetch saved posts:", err);
     }
   };
+
+  const fetchYourPosts = async (userId: string) => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts/by-author`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ authorId: userId }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text(); // probably HTML
+      throw new Error(`API error: ${res.status} - ${errorText}`);
+    }
+
+    const data = await res.json();
+    setYourPosts(data.posts || []);
+  } catch (err) {
+    console.error("Failed to fetch your posts:", err);
+  }
+};
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -127,7 +149,9 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
   if (error) return <div>{error}</div>;
   if (!userData) return <div>Loading...</div>;
 
-  const imageSrc = userData?.image_data || '';
+  const imageSrc = userData.image_data || '';
+
+  const displayedPosts = showSaved ? savedPosts : yourPosts;
 
   return (
     <>
@@ -176,39 +200,52 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
 
           <div className="text-center">
             <h1 className="text-2xl font-semibold">
-              {userData?.first_name} {userData?.last_name}
+              {userData.first_name} {userData.last_name}
             </h1>
-            <p className="text-sm">{userData?.email}</p>
+            <p className="text-sm">{userData.email}</p>
           </div>
         </div>
         <DropDownMenu />
       </div>
 
-      {savedPosts.length > 0 && (
-        <div className="w-full bg-white text-black py-12 px-4 flex flex-col items-center">
-          <h2 className="text-xl font-semibold mb-6">Saved Posts</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl w-full">
-            {savedPosts.map((post) => (
-              <Link href={`/?postId=${post.id}`} key={post.id}>
-                <div className="cursor-pointer rounded group">
-                  <div className="aspect-[4/5] overflow-hidden rounded">
-                    <Image
-                      src={post.image_url}
-                      alt={`Post ${post.id}`}
-                      width={400}
-                      height={500}
-                      className="w-full h-full object-cover transform transition-transform duration-300 ease-in-out group-hover:scale-105"
-                    />
-                  </div>
-                  {post.title && (
-                    <p className="mt-2 text-center text-sm font-medium text-black">{post.title}</p>
-                  )}
+      <div className="w-full bg-gray-100 py-4 flex justify-center gap-6">
+        <button
+          className={`px-4 py-2 rounded-md ${showSaved ? "bg-black text-white" : "bg-white text-black border"}`}
+          onClick={() => setShowSaved(true)}
+        >
+          Saved Posts
+        </button>
+        <button
+          className={`px-4 py-2 rounded-md ${!showSaved ? "bg-black text-white" : "bg-white text-black border"}`}
+          onClick={() => setShowSaved(false)}
+        >
+          Your Posts
+        </button>
+      </div>
+
+      <div className="w-full bg-white text-black py-12 px-4 flex flex-col items-center">
+        <h2 className="text-xl font-semibold mb-6">{showSaved ? "Saved Posts" : "Your Posts"}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl w-full">
+          {displayedPosts.map((post) => (
+            <Link href={`/?postId=${post.id}`} key={post.id}>
+              <div className="cursor-pointer rounded group">
+                <div className="aspect-[4/5] overflow-hidden rounded">
+                  <Image
+                    src={post.image_url}
+                    alt={`Post ${post.id}`}
+                    width={400}
+                    height={500}
+                    className="w-full h-full object-cover transform transition-transform duration-300 ease-in-out group-hover:scale-105"
+                  />
                 </div>
-              </Link>
-            ))}
-          </div>
+                {post.title && (
+                  <p className="mt-2 text-center text-sm font-medium text-black">{post.title}</p>
+                )}
+              </div>
+            </Link>
+          ))}
         </div>
-      )}
+      </div>
     </>
   );
 };

@@ -28,4 +28,6 @@ export type Comment = {
   comment_text: string;
   created_at: string;
   user_id: string;
+  first_name?: string;
+  last_name?: string;
 }
