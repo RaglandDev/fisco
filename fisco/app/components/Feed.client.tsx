@@ -15,7 +15,7 @@ import {
 import Image from "next/image"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
-import { Heart, MessageCircle, User, Bookmark, Trash2, Tag } from "lucide-react"
+import { Heart, MessageCircle, User, Bookmark, Trash2, Tag, Loader2 } from "lucide-react"
 import type { Post } from "@/types"
 import { useSearchParams } from "next/navigation";
 import Link from "next/link"
@@ -64,6 +64,9 @@ const POSTS_PER_PAGE = 5
 export default function Feed({ postData, offset }: { postData: Post[]; offset: number }) {
   const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(null)
   const [posts, setPosts] = useState<Post[]>(postData)
+  // Check if the posts are still loading
+  const [loading, setLoading] = useState(true)
+
   // Lock for liking posts
   const [likeInProgress, setLikeInProgress] = useState<string | null>(null)
 
@@ -358,22 +361,32 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
           style={{ scrollbarWidth: "none", touchAction: "pan-y", overscrollBehavior: "none" }}
           onScroll={handleScroll}
         >
+        
           {posts.map((post, index) => (
             <div key={post.id} className="relative h-full w-full snap-start snap-alway">
               {/* Post content remains the same */}
+            
+            {/* Loading symbol if post doesn't load */}
+            <div className="relative w-full h-full">
+                {loading && (
+                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/50">
+                    <Loader2 className="h-8 w-8 text-white animate-spin" />
+                    </div>
+                )}
 
               <div className="absolute inset-0">
                 <Image
                   data-testid="Post image"
                   src={
-                    `${post.image_url}` ||
-                    "/placeholder.svg"
+                    `${post.image_url}`
                   }
-                  alt={"alt"}
+                  alt={`${post.first_name}'s post image`}
                   fill
-                  className="object-contain"
+                  className={`object-contain transition-opacity duration-300 ${loading ? "opacity-0" : "opacity-100"}`}
+                  onLoad={() => setLoading(false)}
                   priority={index <= 1}
                 />
+            </div>
 
                 {/* Render tags if they exist with fade transition */}
                 {post.tags && (
@@ -420,6 +433,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
                   </>
                 )}
               </div>
+            
 
               {/* Gradient overlay for better text visibility */}
               <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70" />
