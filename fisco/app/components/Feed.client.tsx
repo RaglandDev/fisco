@@ -361,7 +361,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
           {posts.map((post, index) => (
             <div key={post.id} className="relative h-full w-full snap-start snap-alway">
               {/* Post content remains the same */}
-              
+
               <div className="absolute inset-0">
                 <Image
                   data-testid="Post image"
@@ -429,8 +429,18 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
                 {/* User info and caption */}
                 <div className="flex-1 text-white mr-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                      <User className="w-5 h-5 text-gray-600" />
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-300">
+                      {post.image_url ? (
+                        <Image
+                          src={post.image_url}
+                          alt={`${post.first_name}'s profile picture`}
+                          width={32}
+                          height={32}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <User className="w-5 h-5 text-gray-600 m-auto" />
+                      )}
                     </div>
                     <div className="flex items-center">
                       {/* Profile Button with Conditional Redirect */}
