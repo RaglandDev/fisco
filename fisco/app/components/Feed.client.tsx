@@ -2,61 +2,26 @@
 
 import { useState, useRef, useEffect } from "react"
 import CommentDrawer from "@/components/Comments/CommentDrawer"
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog"
 import Image from "next/image"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
-import { Heart, MessageCircle, User, Bookmark, Trash2, Tag, Loader2 } from "lucide-react"
+import { User, Loader2 } from "lucide-react"
 import type { Post } from "@/types"
 import { useSearchParams } from "next/navigation";
 import Link from "next/link"
 import { formatRelativeTime } from "@/lib/utils"
 
-// Helper function to determine label position based on pin position
-const getLabelPosition = (x: number, y: number) => {
-  // Threshold values for edges (as percentage)
-  const topThreshold = 0.15 // 15% from top
-  const leftThreshold = 0.15 // 15% from left
-  const rightThreshold = 0.85 // 15% from right
+// Import action button components
+import {
+  LikeButton,
+  CommentButton,
+  SaveButton,
+  DeleteButton,
+  TagButton,
+  TagsDisplay
+} from "@/components/PostActions"
 
-  // Default position (above the pin)
-  const position = {
-    top: "-top-10",
-    left: "left-1/2",
-    transform: "-translate-x-1/2",
-    origin: "",
-  }
-
-  // If pin is near the top, place label below
-  if (y < topThreshold) {
-    position.top = "top-10"
-  }
-
-  // If pin is near the left edge, align label to start from pin
-  if (x < leftThreshold) {
-    position.left = "left-0"
-    position.transform = "translate-x-0"
-    position.origin = "origin-left"
-  }
-
-  // If pin is near the right edge, align label to end at pin
-  if (x > rightThreshold) {
-    position.left = "right-0"
-    position.transform = "translate-x-0"
-    position.origin = "origin-right"
-  }
-
-  return position
-}
+// Helper function has been moved to TagsDisplay.tsx
 
 
 const POSTS_PER_PAGE = 5
@@ -64,14 +29,9 @@ const POSTS_PER_PAGE = 5
 export default function Feed({ postData, offset }: { postData: Post[]; offset: number }) {
   const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(null)
   const [posts, setPosts] = useState<Post[]>(postData)
+
   // Check if the posts are still loading
   const [loading, setLoading] = useState(true)
-
-  // Lock for liking posts
-  const [likeInProgress, setLikeInProgress] = useState<string | null>(null)
-
-  // Lock for saving posts
-  const [saveInProgress, setSaveInProgress] = useState<string | null>(null)
 
   // Store the database UUID for the current user
   const [userUUID, setUserUUID] = useState<string | null>(null)
@@ -80,19 +40,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
 
   const [currentPostIndex, setCurrentPostIndex] = useState(0) // how deep into the feed you are
 
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [postToDelete, setPostToDelete] = useState<string | null>(null)
-
   const [tagsVisible, setTagsVisible] = useState(false)
-
-  const handleDelete = (postId: string) => {
-    console.log("Delete button clicked for post:", postId)
-    setPostToDelete(postId)
-    setDeleteDialogOpen(true)
-    setTimeout(() => {
-      console.log("deleteDialogOpen after click:", deleteDialogOpen)
-    }, 100)
-  }
 
   const router = useRouter()
 
@@ -179,175 +127,6 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
     }
   }, [posts, postId]);
 
-  const handleLike = async (post_id: string) => {
-    // If user is not signed in
-    if (!user) {
-      alert("Please sign in to like posts!")
-      return
-    }
-    // Prohibits the user from liking the same post multiple times
-    if (likeInProgress === post_id) {
-      return
-    }
-
-    // Lock so there's only a single request
-    setLikeInProgress(post_id)
-
-    const userId = user.id
-    const post = posts.find((p) => p.id === post_id)
-    if (!post) {
-      setLikeInProgress(null)
-      return
-    }
-
-    const hasLiked = post.likes.includes(user?.id)
-
-    // Optimistically update UI immediately
-    setPosts((prevPosts) =>
-      prevPosts.map((post) => {
-        if (post.id === post_id) {
-          if (hasLiked) {
-            // Remove the user ID from the likes array
-            return {
-              ...post,
-              likes: post.likes.filter((id) => id !== userId),
-            }
-          } else {
-            // Add the user ID to the likes array
-            return {
-              ...post,
-              likes: [...post.likes, userId],
-            }
-          }
-        } else {
-          // Return the post unchanged
-          return post
-        }
-      }),
-    )
-
-    // Make an API call to update the likes array for the post
-    try {
-      // Determines whether to like/remove like from the post
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint`, {
-        method: hasLiked ? "DELETE" : "POST",
-        body: JSON.stringify({ post_id, userId }), // send ID in body, not path
-      })
-    } catch (error) {
-      console.error("Error liking post:", error)
-      // Revert the optimistic update if the API call fails
-      setPosts((prevPosts) =>
-        prevPosts.map((post) => {
-          if (post.id === post_id) {
-            if (!hasLiked) {
-              // Remove the user ID from the likes array
-              return {
-                ...post,
-                likes: post.likes.filter((id) => id !== userId),
-              }
-            } else {
-              // Add the user ID back to the likes array
-              return {
-                ...post,
-                likes: [...post.likes, userId],
-              }
-            }
-          } else {
-            // Return the post unchanged
-            return post
-          }
-        }),
-      )
-    } finally {
-      // Unlock
-      setLikeInProgress(null)
-    }
-  }
-  const handleSave = async (post_id: string) => {
-    // If user is not signed in
-    if (!user) {
-      alert("Please sign in to save posts!")
-      return
-    }
-    // Prohibits the user from saving the same post multiple times
-    if (saveInProgress === post_id) {
-      return
-    }
-
-    // Lock so there's only a single request
-    setSaveInProgress(post_id)
-
-    const userId = user.id
-    const post = posts.find((p) => p.id === post_id)
-    if (!post) {
-      setSaveInProgress(null)
-      return
-    }
-
-    const hasSaved = post.saves.includes(user?.id)
-
-    // Optimistically update UI immediately
-    setPosts((prevPosts) =>
-      prevPosts.map((post) => {
-        if (post.id === post_id) {
-          if (hasSaved) {
-            // Remove the user ID from the saves array
-            return {
-              ...post,
-              saves: post.saves.filter((id) => id !== userId),
-            }
-          } else {
-            // Add the user ID to the saves array
-            return {
-              ...post,
-              saves: [...post.saves, userId],
-            }
-          }
-        } else {
-          // Return the post unchanged
-          return post
-        }
-      }),
-    )
-
-    // Make an API call to update the saves array for the post
-    try {
-      // Determines whether to save/remove save from the post
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
-        method: hasSaved ? "DELETE" : "POST",
-        body: JSON.stringify({ post_id, userId }), // send ID in body, not path
-      })
-    } catch (error) {
-      console.error("Error saving post:", error)
-      // Revert the optimistic update if the API call fails
-      setPosts((prevPosts) =>
-        prevPosts.map((post) => {
-          if (post.id === post_id) {
-            if (!hasSaved) {
-              // Remove the user ID from the saves array
-              return {
-                ...post,
-                saves: post.saves.filter((id) => id !== userId),
-              }
-            } else {
-              // Add the user ID back to the saves array
-              return {
-                ...post,
-                saves: [...post.saves, userId],
-              }
-            }
-          } else {
-            // Return the post unchanged
-            return post
-          }
-        }),
-      )
-    } finally {
-      // Unlock
-      setSaveInProgress(null)
-    }
-  }
-
   return (
     <div
       className="w-[100dvw] h-[100dvh] md:w-[100dwh] md:h-[100dvh] md:my-4 md:rounded-xl overflow-hidden bg-black shadow-2xl relative"
@@ -365,72 +144,30 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
           {posts.map((post, index) => (
             <div key={post.id} className="relative h-full w-full snap-start snap-alway">
               {/* Post content remains the same */}
-            
-            {/* Loading symbol if post doesn't load */}
-            <div className="relative w-full h-full">
+
+              {/* Loading symbol if post doesn't load */}
+              <div className="relative w-full h-full">
                 {loading && (
-                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/50">
+                  <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/50">
                     <Loader2 className="h-8 w-8 text-white animate-spin" />
-                    </div>
+                  </div>
                 )}
 
-              <div className="absolute inset-0">
-                <Image
-                  data-testid="Post image"
-                  src={
-                    `${post.image_url}`
-                  }
-                  alt={`${post.first_name}'s post image`}
-                  fill
-                  className={`object-contain transition-opacity duration-300 ${loading ? "opacity-0" : "opacity-100"}`}
-                  onLoad={() => setLoading(false)}
-                  priority={index <= 1}
-                />
-            </div>
+                <div className="absolute inset-0">
+                  <Image
+                    data-testid="Post image"
+                    src={`${post.image_url}`}
+                    alt={`${post.first_name}'s post image`}
+                    fill
+                    className={`object-contain transition-opacity duration-300 ${loading ? "opacity-0" : "opacity-100"}`}
+                    onLoad={() => setLoading(false)}
+                    priority={index <= 1}
+                  />
+                </div>
 
                 {/* Render tags if they exist with fade transition */}
                 {post.tags && (
-                  <>
-                    {(() => {
-                      try {
-                        // Parse the tag data
-
-                        return post.tags.map((tag, tagIndex) => {
-                          // Get dynamic position for label based on tag position
-                          const labelPosition = getLabelPosition(tag.x, tag.y)
-
-                          return (
-                            <div
-                              id={`post tag ${tagIndex}`}
-                              key={tagIndex}
-                              className={`absolute z-20 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 ease-in-out ${tagsVisible ? "opacity-100" : "opacity-0"}`}
-                              style={{
-                                left: `${tag.x * 100}%`,
-                                top: `${tag.y * 100}%`,
-                                pointerEvents: tagsVisible ? "auto" : "none",
-                              }}
-                            >
-                              <div className="flex items-center justify-center">
-                                <Tag className="h-6 w-6 text-red-500 fill-red-500/50" />
-                              </div>
-
-                              {/* tag label */}
-                              {tag.label && (
-                                <div
-                                  className={`absolute ${labelPosition.top} ${labelPosition.left} ${labelPosition.origin} transform ${labelPosition.transform} bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-30`}
-                                >
-                                  {tag.label}
-                                </div>
-                              )}
-                            </div>
-                          )
-                        })
-                      } catch (e) {
-                        console.error("Error parsing tag data:", e)
-                        return null
-                      }
-                    })()}
-                  </>
+                  <TagsDisplay tags={post.tags} visible={tagsVisible} />
                 )}
               </div>
             
@@ -471,32 +208,20 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
                 </div>
 
                 {/* Action buttons */}
-                <div className="flex flex-col gap-3 items-center">
-                  <button
-                    aria-label="Like button"
-                    onClick={() => {
-                      if (user) {
-                        handleLike(post.id)
-                      } else {
-                        router.push("/login")
-                      }
+                <div className="flex flex-col gap-3 items-center">:
+                  <LikeButton 
+                    post={post} 
+                    onLikeChange={(updatedPost) => {
+                      setPosts((prevPosts) =>
+                        prevPosts.map((p) => p.id === updatedPost.id ? updatedPost : p)
+                      )
                     }}
-                    className="flex flex-col items-center transition-transform duration-200 hover:scale-110"
-                  >
-                    <Heart
-                      className={`w-7 h-7 transition-all duration-300 ease-in-out ${user?.id && post.likes.includes(user.id) ? "text-red-500 fill-red-500 scale-110" : "text-white"
-                        }`}
-                    />
-                    <span className="text-white text-xs">{post.likes.length}</span>
-                  </button>
-                  <button
-                    aria-label="Comment button"
-                    onClick={() => setActiveCommentPostId(post.id)}
-                    className="flex flex-col items-center transition-transform duration-200 hover:scale-110"
-                  >
-                    <MessageCircle className="w-7 h-7 text-white transition-all duration-300 ease-in-out hover:text-blue-400" />
-                    <span className="text-white text-xs">{post.comment_count}</span>
-                  </button>
+                  />
+                  
+                  <CommentButton 
+                    post={post} 
+                    onCommentClick={(postId) => setActiveCommentPostId(postId)} 
+                  />
 
                   {activeCommentPostId === post.id && (
                     <CommentDrawer
@@ -517,98 +242,34 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
                       }}
                     />
                   )}
-                  {/* Save Button with Lucide Bookmark Icon */}
-                  <button
-                    aria-label="Save button"
-                    onClick={() => {
-                      if (user) {
-                        // Replace with actual save functionality
-                        handleSave(post.id)
-                      } else {
-                        router.push("/login")
-                      }
+                  
+                  <SaveButton 
+                    post={post} 
+                    onSaveChange={(updatedPost) => {
+                      setPosts((prevPosts) =>
+                        prevPosts.map((p) => p.id === updatedPost.id ? updatedPost : p)
+                      )
                     }}
-                    className="flex flex-col items-center transition-transform duration-200 hover:scale-110"
-                  >
-                    <Bookmark
-                      className={`w-7 h-7 transition-all duration-300 ease-in-out ${user?.id && post.saves.includes(user.id)
-                        ? "text-yellow-500 fill-yellow-500 scale-110"
-                        : "text-white"
-                        }`}
-                    />{" "}
-                    {/* Bookmark icon */}
-                  </button>
-
-                  {/* Delete button only visible for posts made by the current user */}
-                  {user?.id && (
-                    <>
-                      {userUUID && post.fk_author_id === userUUID && (
-                        <button
-                          aria-label="Delete button"
-                          onClick={() => handleDelete(post.id)}
-                          className="flex flex-col items-center mt-3 transition-transform duration-200 hover:scale-110"
-                        >
-                          <Trash2 className="w-7 h-7 text-white hover:text-red-500 transition-all duration-300 ease-in-out" />
-                        </button>
-                      )}
-                    </>
-                  )}
-                  <button
-                    aria-label="Show tags button"
-                    onClick={() => setTagsVisible(!tagsVisible)}
-                    className={`flex flex-col items-center transition-all duration-200 hover:scale-110 ${tagsVisible ? "text-red-500" : "text-white"}`}
-                  >
-                    <Tag
-                      className={`w-7 h-7 transition-all duration-300 ease-in-out ${tagsVisible ? "scale-110" : ""}`}
-                    />
-                  </button>
+                  />
+                  
+                  <DeleteButton 
+                    post={post} 
+                    userUUID={userUUID} 
+                    onPostDeleted={(postId) => {
+                      setPosts((posts) => posts.filter((p) => p.id !== postId));
+                    }} 
+                  />
+                  
+                  <TagButton 
+                    tagsVisible={tagsVisible} 
+                    onToggleTags={() => setTagsVisible(!tagsVisible)} 
+                  />
                 </div>
               </div>
             </div>
           ))}
         </div>
       </div>
-
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-black text-white border border-gray-700">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Post</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-300">
-              Are you sure you want to delete this post? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-800 text-white border border-gray-700 hover:bg-gray-700">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700 text-white border border-gray-700"
-              onClick={async () => {
-                if (!postToDelete) return
-                try {
-                  const res = await fetch("/api/posts", {
-                    method: "DELETE",
-                    body: JSON.stringify({ postId: postToDelete }),
-                  })
-                  if (res.ok) {
-                    setPosts((posts) => posts.filter((post) => post.id !== postToDelete))
-                  } else {
-                    const data = await res.json()
-                    alert(data.error || "Failed to delete post")
-                  }
-                } catch (_err) {
-                  alert("Failed to delete post")
-                } finally {
-                  setDeleteDialogOpen(false)
-                  setPostToDelete(null)
-                }
-              }}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <style jsx global>{`
     ::-webkit-scrollbar {
