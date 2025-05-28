@@ -16,6 +16,7 @@ export async function GET(req: Request) {
       users.last_name,
       users.email,
       users.clerk_user_id,
+      profile_images.s3_url AS profile_image_url,
       (
         SELECT COUNT(*)::INT 
         FROM comments 
@@ -24,6 +25,7 @@ export async function GET(req: Request) {
     FROM posts
     LEFT JOIN images ON posts.fk_image_id = images.id
     LEFT JOIN users ON posts.fk_author_id::text = users.id::text
+    LEFT JOIN images AS profile_images ON users.fk_image_id = profile_images.id
     ORDER BY posts.created_at DESC
     LIMIT ${limit} OFFSET ${offset}
   `;

@@ -429,17 +429,17 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
                 {/* User info and caption */}
                 <div className="flex-1 text-white mr-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-300">
-                      {post.image_url ? (
+                    <div className="w-8 h-8 rounded-full overflow-hidden border border-white">
+                      {post.profile_image_url ? (
                         <Image
-                          src={post.image_url}
+                          src={post.profile_image_url}
                           alt={`${post.first_name}'s profile picture`}
                           width={32}
                           height={32}
                           className="object-cover w-full h-full"
                         />
                       ) : (
-                        <User className="w-5 h-5 text-gray-600 m-auto" />
+                        <User className="w-5 h-5 text-gray-400 m-auto" />
                       )}
                     </div>
                     <div className="flex items-center">

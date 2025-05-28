@@ -14,6 +14,7 @@ export type Post = {
     comments: Array<string>;
     saves: Array<string>;
     image_url: string;
+    profile_image_url?: string | null;
     user_data?: string;
     first_name: string | "Unknown";
     last_name: string | "Unknown";
