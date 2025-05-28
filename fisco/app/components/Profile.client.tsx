@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import DropDownMenu from "@/components/DropDown.client";
-import { Plus } from 'lucide-react';
+import { Plus, Edit } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -24,6 +24,8 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
   const [savedPosts, setSavedPosts] = useState<Post[]>([]);
   const [yourPosts, setYourPosts] = useState<Post[]>([]);
   const [showSaved, setShowSaved] = useState(true);
+  const [newBio, setNewBio] = useState<string>(''); // State to store the new bio input
+  const [isEditing, setIsEditing] = useState<boolean>(false); // State to toggle edit mode
 
   const [userData, setUserData] = useState<{
     first_name: string;
@@ -31,8 +33,9 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
     email: string;
     fk_image_id: string | null;
     image_data: string | null;
+    bio: string;
   } | null>(null);
-
+  
   useEffect(() => {
     if (userId) {
       fetchUserData(userId);
@@ -146,6 +149,34 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
     }
   };
 
+  const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newBio = e.target.value.slice(0, 256); // Limit to 256 characters
+    setNewBio(newBio);
+  };
+
+  const updateBio = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bio`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, bio: newBio }), // Ensure userId is in the body
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setUserData(prev => prev ? { ...prev, bio: newBio } : prev);
+        setIsEditing(false);
+      } else {
+        alert(data.error || 'Failed to update bio');
+      }
+    } catch (err) {
+      console.error('Error updating bio:', err);
+    }
+  };
+
+
   if (error) return <div>{error}</div>;
   if (!userData) return <div>Loading...</div>;
 
@@ -203,6 +234,35 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
               {userData.first_name} {userData.last_name}
             </h1>
             <p className="text-sm">{userData.email}</p>
+
+            {isEditing ? (
+              <>
+                <textarea
+                  value={newBio || ''}
+                  onChange={handleBioChange}
+                  className="w-full mt-2 p-2 border border-gray-300 rounded-md text-white"
+                  maxLength={256}
+                  placeholder="Write your bio here..."
+                />
+                <button
+                  onClick={updateBio}
+                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md"
+                >
+                  Save Bio
+                </button>
+              </>
+            ) : (
+              (userData.bio || isOwner) && (
+                <div className="flex justify-center items-center gap-1 mt-2">
+                  <p className="text-sm">{userData.bio || 'Add Bio'}</p>
+                  {isOwner && (
+                    <button onClick={() => setIsEditing(true)} className="text-blue-400 hover:text-blue-300">
+                      <Edit className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              )
+            )}
           </div>
         </div>
         <DropDownMenu />
