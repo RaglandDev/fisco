@@ -22,6 +22,7 @@ export async function GET(req: Request) {
         users.last_name,
         users.email,
         users.image_url,
+        users.bio,
         posts.id AS post_id,
         posts.created_at,
         posts.likes,
@@ -59,7 +60,8 @@ export async function GET(req: Request) {
         first_name: user.first_name,
         last_name: user.last_name,
         email: user.email,
-        image_url: user.image_url
+        image_url: user.image_url,
+        bio: user.bio
       },
       posts: posts.length > 0 ? posts : []  // Ensure that posts are returned, even if empty
     }, {headers: {
