@@ -361,6 +361,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
           {posts.map((post, index) => (
             <div key={post.id} className="relative h-full w-full snap-start snap-alway">
               {/* Post content remains the same */}
+              
               <div className="absolute inset-0">
                 <Image
                   data-testid="Post image"

@@ -7,7 +7,6 @@ interface ImageUploadProps {
   onUploadError?: (error: string) => void;
 }
 
-// Define the handle type
 export interface ImageUploadHandle {
   triggerFileSelect: () => void;
 }
@@ -18,60 +17,84 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>((props, ref)
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Expose the triggerFileSelect method to parent components
   useImperativeHandle(ref, () => ({
     triggerFileSelect: () => {
       inputRef.current?.click();
     },
   }));
 
+  const isHeic = (file: File) => {
+    const lowerName = file.name.toLowerCase();
+    return (
+      file.type.includes("heic") ||
+      file.type.includes("heif") ||
+      lowerName.endsWith(".heic") ||
+      lowerName.endsWith(".heif")
+    );
+  };
+
   const previewImage = async (file: File) => {
     try {
-      setIsUploading(true);
-      setError("");
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result as string;
-        if (onUploadComplete) {
-          onUploadComplete(result); // result is a data URL
-        }
+        onUploadComplete?.(result);
         setIsUploading(false);
       };
       reader.onerror = () => {
-        setError("Failed to read the image file.");
+        const errMsg = "Failed to read the image file.";
+        setError(errMsg);
+        onUploadError?.(errMsg);
         setIsUploading(false);
-        if (onUploadError) {
-          onUploadError("Failed to read the image file.");
-        }
       };
       reader.readAsDataURL(file);
     } catch (error: unknown) {
-      console.error("Preview error:", error);
-      let errorMessage = "Failed to prepare image preview.";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
+      const errorMessage = error instanceof Error ? error.message : "Failed to preview image.";
       setError(errorMessage);
-      if (onUploadError) {
-        onUploadError(errorMessage);
-      }
+      onUploadError?.(errorMessage);
       setIsUploading(false);
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const maxSizeMB = 10;
-      if (file.size > maxSizeMB * 1024 * 1024) {
-        const errorMsg = `File is too large. Maximum allowed size is ${maxSizeMB}MB.`;
-        setError(errorMsg);
-        if (onUploadError) {
-          onUploadError(errorMsg);
-        }
-        return;
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    let file = e.target.files?.[0];
+    if (!file) return;
+
+    const maxSizeMB = 10;
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      const errorMsg = `File is too large. Maximum allowed size is ${maxSizeMB}MB.`;
+      setError(errorMsg);
+      onUploadError?.(errorMsg);
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setError("");
+
+      if (isHeic(file)) {
+        const heic2any = (await import('heic2any')).default;
+
+        const convertedBlob = await heic2any({
+          blob: file,
+          toType: "image/jpeg",
+          quality: 0.9,
+        });
+
+        file = new File(
+          [convertedBlob as Blob],
+          file.name.replace(/\.(heic|heif)$/i, ".jpg"),
+          { type: "image/jpeg" }
+        );
       }
-      previewImage(file);
+
+      await previewImage(file);
+    } catch (err) {
+      console.error("HEIC conversion failed:", err);
+      const errMsg = "Failed to convert HEIC image.";
+      setError(errMsg);
+      onUploadError?.(errMsg);
+      setIsUploading(false);
     }
   };
 
@@ -81,7 +104,7 @@ const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>((props, ref)
         data-testid="File upload"
         ref={inputRef}
         type="file"
-        accept="image/*"  // Accepts any image file
+        accept="image/*"
         onChange={handleFileChange}
         disabled={isUploading}
         style={{ display: "none" }}

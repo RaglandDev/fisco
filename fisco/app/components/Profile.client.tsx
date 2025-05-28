@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import DropDownMenu from "@/components/DropDown.client";
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type SavedPost = {
   id: string;
@@ -61,7 +62,6 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profilephoto?user_id=${userId}`);
       const data = await res.json();
-      console.log(data.image_url)
       if (data.image_url) {
         setUserData(prev =>
           prev ? { ...prev, image_data: data.image_url } : prev
@@ -81,7 +81,6 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
 
       const data = await response.json();
       const savedIds = data.saved_galleries?.["Saved Posts"] || [];
-      console.log(savedIds)
 
       if (savedIds.length > 0) {
         const postRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts`, {
@@ -117,7 +116,7 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
       if (!response.ok) throw new Error(data.error || "Upload failed");
 
       setUserData(prev =>
-        prev ? { ...prev, fk_image_id: data.id, image_data: data.image_data } : prev
+        prev ? { ...prev, fk_image_id: data.id, image_data: data.image_url } : prev
       );
     } catch (err) {
       console.error("Failed to upload profile photo:", err);
@@ -128,11 +127,10 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
   if (error) return <div>{error}</div>;
   if (!userData) return <div>Loading...</div>;
 
-  const imageSrc = userData?.image_data ? userData.image_data : null;
+  const imageSrc = userData?.image_data || '';
 
   return (
     <>
-      {/* Header Section - Black */}
       <div className="w-full bg-black text-white p-8 flex flex-col items-center space-y-6">
         <div className="flex items-center justify-center gap-6">
           <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white relative">
@@ -142,15 +140,28 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
                 className="w-full h-full flex items-center justify-center bg-gray-800 hover:bg-gray-700"
               >
                 {imageSrc ? (
-                  <img src={imageSrc} alt="Profile" className="w-full h-full object-cover" />
+                  <Image
+                    src={imageSrc}
+                    alt="Profile"
+                    width={96}
+                    height={96}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <Plus className="w-10 h-10 text-white opacity-70" />
                 )}
               </button>
             ) : (
-              imageSrc && <img src={imageSrc} alt="Profile" className="w-full h-full object-cover" />
+              imageSrc && (
+                <Image
+                  src={imageSrc}
+                  alt="Profile"
+                  width={96}
+                  height={96}
+                  className="w-full h-full object-cover"
+                />
+              )
             )}
-
             {isOwner && (
               <input
                 id="profile-file-input"
@@ -173,7 +184,6 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
         <DropDownMenu />
       </div>
 
-      {/* Saved Posts Section - White */}
       {savedPosts.length > 0 && (
         <div className="w-full bg-white text-black py-12 px-4 flex flex-col items-center">
           <h2 className="text-xl font-semibold mb-6">Saved Posts</h2>
@@ -182,9 +192,11 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
               <Link href={`/?postId=${post.id}`} key={post.id}>
                 <div className="cursor-pointer rounded group">
                   <div className="aspect-[4/5] overflow-hidden rounded">
-                    <img
+                    <Image
                       src={post.image_url}
                       alt={`Post ${post.id}`}
+                      width={400}
+                      height={500}
                       className="w-full h-full object-cover transform transition-transform duration-300 ease-in-out group-hover:scale-105"
                     />
                   </div>

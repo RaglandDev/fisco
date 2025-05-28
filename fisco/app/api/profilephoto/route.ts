@@ -1,7 +1,16 @@
 import { neon } from "@neondatabase/serverless";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 
 const sql = neon(process.env.DATABASE_URL!);
+const s3 = new S3Client({
+  region: process.env.REGION!,
+  credentials: {
+    accessKeyId: process.env.ACCESS_KEY!,
+    secretAccessKey: process.env.SECRET_KEY!,
+  },
+});
 
 export async function POST(req: Request) {
   const contentType = req.headers.get("content-type") || "";
@@ -10,50 +19,43 @@ export async function POST(req: Request) {
   }
 
   const formData = await req.formData();
-  const file = formData.get("file");
-  const userId = formData.get("user_id");
+  const file = formData.get("file") as Blob | null;
+  const userId = formData.get("user_id")?.toString();
 
-  if (!file || !(file instanceof Blob)) {
-    return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
-  }
-
-  if (!userId || typeof userId !== "string") {
-    return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
+  if (!file || !(file instanceof Blob) || !userId) {
+    return NextResponse.json({ error: "Invalid file or user_id" }, { status: 400 });
   }
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
+  const fileExtension = "png";
+  const s3Key = `profile/${userId}-${crypto.randomUUID()}.${fileExtension}`;
+  const s3Url = `https://${process.env.BUCKET_NAME}.s3.${process.env.REGION}.amazonaws.com/${s3Key}`;
 
   try {
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: process.env.BUCKET_NAME!,
+        Key: s3Key,
+        Body: buffer,
+        ContentType: "image/png",
+        ACL: "public-read",
+      })
+    );
+
     const result = await sql`
-      INSERT INTO images (data) VALUES (${buffer}) RETURNING id;
+      INSERT INTO images (s3_key, s3_url) VALUES (${s3Key}, ${s3Url}) RETURNING id;
     `;
     const imageId = result[0]?.id;
-    if (!imageId) throw new Error("Failed to insert image");
 
     await sql`
-      UPDATE users
-      SET fk_image_id = ${imageId}
-      WHERE clerk_user_id = ${userId};
+      UPDATE users SET fk_image_id = ${imageId} WHERE clerk_user_id = ${userId};
     `;
 
-    const imageResult = await sql`
-      SELECT encode(data, 'base64') AS image_data
-      FROM images
-      WHERE id = ${imageId};
-    `;
-
-    return NextResponse.json({
-      id: imageId,
-      image_data: imageResult[0]?.image_data || null,
-    }, {headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    }});
+    return NextResponse.json({ id: imageId, image_url: s3Url });
   } catch (error) {
     console.error("Upload error:", error);
-    return NextResponse.json({ error: "Failed to upload or update user" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to upload to S3 or save to DB" }, { status: 500 });
   }
 }
 
@@ -67,22 +69,15 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = await sql`
-      SELECT image_url
+      SELECT images.s3_url
       FROM users
-      WHERE clerk_user_id = ${userId};
+      JOIN images ON users.fk_image_id = images.id
+      WHERE users.clerk_user_id = ${userId};
     `;
 
-    return NextResponse.json({ image_url: result[0]?.image_url || null }, {headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    }});
+    return NextResponse.json({ image_url: result[0]?.s3_url || null });
   } catch (error) {
-    console.error("Failed to fetch profile image:", error);
-    return NextResponse.json({ error: "Failed to fetch profile image" }, { status: 500,  headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    } });
+    console.error("Fetch error:", error);
+    return NextResponse.json({ error: "Failed to fetch profile image" }, { status: 500 });
   }
 }
