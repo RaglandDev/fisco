@@ -50,7 +50,7 @@ export async function POST(req: Request) {
 
 export function OPTIONS() {
   return NextResponse.json({
-    status: 204,
+    status: 200,
     headers: corsHeaders,
   });
 }
