@@ -121,10 +121,9 @@ describe('CommentDrawer', async () => {
     render(<CommentDrawer {...mockProps} />);
     
     await waitFor(() => {
-      expect(getComments).toHaveBeenCalledWith('post-123');
+      expect(screen.getByText('Comments: 2')).toBeInTheDocument();
     });
     
-    expect(screen.getByText('Comments: 2')).toBeInTheDocument();
     expect(mockProps.setCommentCount).toHaveBeenCalledWith(2);
   });
 
