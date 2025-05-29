@@ -20,11 +20,14 @@ export default defineConfig({
     },
   },
   test: {
+  // Suppress specific console methods
+    onConsoleLog(log, type) {
+      if (type === 'stderr') return false
+      return true
+    },
     globals: true,
     // Use different environments based on test file location
-    environmentMatchGlobs: [
-      ["**/__tests__/**", "jsdom"], // Component tests use jsdom
-    ],
+    environment: "jsdom", 
     setupFiles: ['./__tests__/components/setup-tests.ts'],
     css: false,
     env: loadEnv('', process.cwd(), ''),

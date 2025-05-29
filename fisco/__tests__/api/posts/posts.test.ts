@@ -71,7 +71,6 @@ describe("API Route: /api/posts", () => {
       // Verify the SQL was called with correct parameters
       const callArguments = mockSql.mock.calls[0]
       const interpolatedValues = callArguments.slice(1)
-      console.log(interpolatedValues, [requestBody.ids])
       expect(interpolatedValues).toEqual([requestBody.ids])
 
       // Check CORS headers
