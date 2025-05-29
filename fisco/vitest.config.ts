@@ -16,12 +16,15 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "app"),
+      "@": path.resolve(__dirname, "app")
     },
   },
   test: {
     globals: true,
-    environment: 'jsdom',
+    // Use different environments based on test file location
+    environmentMatchGlobs: [
+      ["**/__tests__/**", "jsdom"], // Component tests use jsdom
+    ],
     setupFiles: ['./__tests__/components/setup-tests.ts'],
     css: false,
     env: loadEnv('', process.cwd(), ''),
