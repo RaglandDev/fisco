@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState, useRef, useCallback } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Loader2, Tag, Trash2 } from "lucide-react"
+import { Loader2, Tag, Trash2, House } from "lucide-react"
 import { useUser } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Tooltip } from 'react-tooltip';
 
 // Define the pin type with a label
 interface Pin {
@@ -411,10 +412,13 @@ export default function PreviewPage() {
             onClick={() => !editingPin && setIsTagMode(false)}
             disabled={editingPin !== null}
             className={`flex items-center justify-center p-3 rounded-lg transition-colors bg-white ${
-              !isTagMode ? "text-red-500" : "text-gray-400 hover:text-gray-600"
+              !isTagMode ? "text-red-500" : "text-gray-400"
             } ${editingPin !== null ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+            data-tooltip-id="trash-button-tooltip"
+            data-tooltip-content="Remove A Tag"
           >
             <Trash2 className="h-5 w-5" />
+            <Tooltip id="trash-button-tooltip" />
           </button>
 
           {/* Add tag mode button */}
@@ -425,9 +429,24 @@ export default function PreviewPage() {
             className={`flex items-center justify-center p-3 rounded-lg transition-colors bg-white ${
               isTagMode ? "text-black" : "text-gray-400 hover:text-gray-600"
             } ${editingPin !== null ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+            data-tooltip-id="tag-button-tooltip"
+            data-tooltip-content="Add a Tag to the Image!"
           >
             <Tag className="h-5 w-5" />
+            <Tooltip id="tag-button-tooltip" />
           </button>
+            {/* Exit Button */}
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            data-tooltip-id="exit-button-tooltip"
+            data-tooltip-content="Exit to Home"
+            className="flex items-center justify-center p-3 rounded-lg transition-colors text-black bg-white"
+            >
+            <House>
+            </House>
+            </button>
+            <Tooltip id="exit-button-tooltip" />
         </div>
 
         {/* Share Button */}
@@ -445,6 +464,7 @@ export default function PreviewPage() {
             "Share"
           )}
         </Button>
+        
       </div>
 
       {/* Mobile-friendly tag naming overlay */}
