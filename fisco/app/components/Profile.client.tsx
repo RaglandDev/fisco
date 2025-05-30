@@ -284,7 +284,6 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
       </div>
 
       <div className="w-full bg-white text-black py-12 px-4 flex flex-col items-center">
-        <h2 className="text-xl font-semibold mb-6">{showSaved ? "Saved Posts" : "Your Posts"}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl w-full">
           {displayedPosts.map((post) => (
             <Link href={`/?postId=${post.id}`} key={post.id}>
