@@ -40,15 +40,6 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
   const [currentPostIndex, setCurrentPostIndex] = useState(0) // how deep into the feed you are
 
   const [tagsVisible, setTagsVisible] = useState(false)
-    
-  // If there are no posts in the database
-  if (posts.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-white">No posts available...</p>
-      </div>
-    )
-  }
 
   const fetchMorePosts = async () => {
     try {
@@ -133,6 +124,16 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
       });
     }
   }, [posts, postId]);
+
+  // If there are no posts in the database
+  // Placed after hooks for npm run build to compile
+  if (posts.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-white">No posts available...</p>
+      </div>
+    )
+  }
 
   return (
     <div
