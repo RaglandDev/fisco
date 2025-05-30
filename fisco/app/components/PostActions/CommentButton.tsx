@@ -18,6 +18,7 @@ export default function CommentButton({ post, onCommentClick }: CommentButtonPro
     if (user) {
       onCommentClick(post.id);
     } else {
+        alert("Please sign in to comment posts!");
       router.push("/login");
     }
   };
