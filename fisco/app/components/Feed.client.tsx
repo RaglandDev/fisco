@@ -40,6 +40,15 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
   const [currentPostIndex, setCurrentPostIndex] = useState(0) // how deep into the feed you are
 
   const [tagsVisible, setTagsVisible] = useState(false)
+    
+  // If there are no posts in the database
+  if (posts.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-white">No posts available...</p>
+      </div>
+    )
+  }
 
   const fetchMorePosts = async () => {
     try {
@@ -47,6 +56,7 @@ export default function Feed({ postData, offset }: { postData: Post[]; offset: n
         `${process.env.NEXT_PUBLIC_API_URL}/api/testendpoint?limit=${POSTS_PER_PAGE}&offset=${offset + posts.length}`,
       )
       const data = await res.json()
+      
       const newPosts: Post[] = data.posts
       if (newPosts) {
         setPosts((prev) => {
