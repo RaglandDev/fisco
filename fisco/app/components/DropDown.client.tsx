@@ -68,14 +68,14 @@ export default function DropDownMenu() {
           <div className="flex flex-col items-center gap-2 mt-2 z-50 pointer-events-auto opacity-0 animate-fadeIn">
             {/* Home Button */}
             <Link href="/">
-              <button className="flex items-center gap-2 p-2 w-48 text-left text-white">
+              <button aria-label="Home button" data-testid="Home button" className="flex items-center gap-2 p-2 w-48 text-left text-white">
                 <Home className="w-6 h-6" /> Home
               </button>
             </Link>
 
             {/* Profile Button - Conditional redirect */}
             <Link href={userId ? `/profile/${userId}` : "/login"}>
-              <button className="flex items-center gap-2 p-2 w-48 text-left text-white">
+              <button aria-label="Profile button" data-testid="Profile button" className="flex items-center gap-2 p-2 w-48 text-left text-white">
                 <User className="w-6 h-6" /> Profile
               </button>
             </Link>

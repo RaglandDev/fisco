@@ -70,6 +70,7 @@ export default function SaveButton({ post, onSaveChange }: SaveButtonProps) {
   return (
     <button
       aria-label="Save button"
+      data-testid='Save button'
       onClick={handleSave}
       className="flex flex-col items-center transition-transform duration-200 hover:scale-110"
     >
