@@ -80,7 +80,7 @@ export default function LikeButton({ post, onLikeChange }: LikeButtonProps) {
             : "text-white"
         }`}
       />
-      <span className="text-white text-xs">{post.likes.length}</span>
+      <span aria-label="Like count" className="text-white text-xs">{post.likes.length}</span>
     </button>
   );
 }

@@ -52,6 +52,31 @@ test.describe('MVP user stories', () => {
     const srcAfter = await firstImageAfter.getAttribute('src');
     expect(srcAfter).toBe(srcBefore);
   })
+
+  test('Like and unlike a post (As a user, I want to show others that I enjoy an outfit.)', async ({ page }) => {
+    // Sign in as test user
+    await page.goto('http://localhost:3000/');
+    await login(page);
+
+    const likeCountLocator = page.getByLabel('Like count').first();
+    const likeButtonLocator = page.getByLabel('Like button').first();
+
+    // Get initial like count
+    const initialCountText = await likeCountLocator.innerText();
+    const initialCount = parseInt(initialCountText, 10);
+
+    // Click like button
+    await likeButtonLocator.click();
+
+    // Wait for like count to increase
+    await expect(likeCountLocator).toHaveText((initialCount + 1).toString());
+
+    // Click like button again to unlike
+    await likeButtonLocator.click();
+
+    // Wait for like count to decrease back to initial
+    await expect(likeCountLocator).toHaveText(initialCount.toString());
+  });
 });
 
 // test('Sign in as test user', () => {
