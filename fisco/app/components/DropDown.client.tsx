@@ -59,7 +59,7 @@ export default function DropDownMenu() {
 
       <div className="fixed top-1 left-1 z-50">
         {/* Hamburger Menu Button */}
-        <button onClick={toggleMenu} aria-label="Toggle menu" className="text-white p-2 cursor-pointer">
+        <button onClick={toggleMenu} aria-label="Navigation menu" className="text-white p-2 cursor-pointer">
           <Menu className="w-6 h-6" />
         </button>
 

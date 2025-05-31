@@ -118,6 +118,7 @@ export function LoginForm({
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    data-testid="Email address input"
                   />
                 </div>
 
@@ -134,6 +135,7 @@ export function LoginForm({
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    aria-label="Password input"
                   />
                 </div>
 
@@ -141,6 +143,7 @@ export function LoginForm({
 
                 <Button
                   type="submit"
+                  aria-label="Submit login"
                   className="w-full"
                   disabled={loading || oauthLoading !== null || !isLoaded}
                 >
