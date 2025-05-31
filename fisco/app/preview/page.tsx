@@ -19,6 +19,7 @@ interface Pin {
   x: number
   y: number
   label: string
+  url?: string
 }
 
 // Form schema for tag name
@@ -26,6 +27,7 @@ const formSchema = z.object({
   tagName: z.string().min(1, {
     message: "Tag name is required",
   }),
+  tagUrl: z.string().url().optional(),
 })
 
 export default function PreviewPage() {
@@ -46,6 +48,7 @@ export default function PreviewPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       tagName: "",
+      tagUrl: "",
     },
   })
 
@@ -242,6 +245,7 @@ export default function PreviewPage() {
         updatedPins[editingPin.index] = {
           ...updatedPins[editingPin.index],
           label: values.tagName.trim(),
+          url: values.tagUrl?.trim() || undefined,
         }
         setPins(updatedPins)
         setEditingPin(null)
@@ -350,9 +354,8 @@ export default function PreviewPage() {
       {imageUrl ? (
         <div
           ref={imageContainerRef}
-          className={`relative w-full max-w-lg aspect-[4/3] mb-6 rounded-lg overflow-hidden border border-gray-700 ${
-            isTagMode ? "cursor-crosshair" : "cursor-pointer"
-          }`}
+          className={`relative w-full max-w-lg aspect-[4/3] mb-6 rounded-lg overflow-hidden border border-gray-700 ${isTagMode ? "cursor-crosshair" : "cursor-pointer"
+            }`}
           onClick={handleImageClick}
         >
           <Image src={imageUrl || "/placeholder.svg"} alt="Preview" layout="fill" objectFit="contain" unoptimized />
@@ -365,9 +368,8 @@ export default function PreviewPage() {
             return (
               <div
                 key={index}
-                className={`absolute z-10 cursor-pointer transform -translate-x-1/2 -translate-y-1/2 group ${
-                  !isTagMode ? "animate-pulse" : ""
-                }`}
+                className={`absolute z-10 cursor-pointer transform -translate-x-1/2 -translate-y-1/2 group ${!isTagMode ? "animate-pulse" : ""
+                  }`}
                 style={{
                   left: `${pin.x * 100}%`,
                   top: `${pin.y * 100}%`,
@@ -376,20 +378,30 @@ export default function PreviewPage() {
               >
                 {/* Add some margin so tag icon looks like the right position*/}
                 <Tag
-                  className={`h-6 w-6 ${
-                    !isTagMode
-                      ? "text-red-500 fill-red-500/80"
-                      : "text-red-500 fill-red-500/50 group-hover:fill-red-500/80"
-                  } transition-all`}
+                  className={`h-6 w-6 ${!isTagMode
+                    ? "text-red-500 fill-red-500/80"
+                    : "text-red-500 fill-red-500/50 group-hover:fill-red-500/80"
+                    } transition-all`}
                 />
 
                 {/* Dynamically positioned pin label */}
                 {pin.label && editingPin?.index !== index && (
-                  <div
-                    className={`absolute ${labelPosition.top} ${labelPosition.left} ${labelPosition.origin} transform ${labelPosition.transform} bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap`}
-                  >
-                    {pin.label}
-                  </div>
+                  pin.url ? (
+                    <a
+                      href={pin.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`absolute ${labelPosition.top} ${labelPosition.left} ${labelPosition.origin} transform ${labelPosition.transform} bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap hover:underline`}
+                    >
+                      {pin.label}
+                    </a>
+                  ) : (
+                    <div
+                      className={`absolute ${labelPosition.top} ${labelPosition.left} ${labelPosition.origin} transform ${labelPosition.transform} bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap`}
+                    >
+                      {pin.label}
+                    </div>
+                  )
                 )}
               </div>
             )
@@ -411,9 +423,8 @@ export default function PreviewPage() {
             type="button"
             onClick={() => !editingPin && setIsTagMode(false)}
             disabled={editingPin !== null}
-            className={`flex items-center justify-center p-3 rounded-lg transition-colors bg-white ${
-              !isTagMode ? "text-red-500" : "text-gray-400"
-            } ${editingPin !== null ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+            className={`flex items-center justify-center p-3 rounded-lg transition-colors bg-white ${!isTagMode ? "text-red-500" : "text-gray-400"
+              } ${editingPin !== null ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
             data-tooltip-id="trash-button-tooltip"
             data-tooltip-content="Remove A Tag"
           >
@@ -428,27 +439,26 @@ export default function PreviewPage() {
             data-testid="Tag mode button"
             onClick={() => !editingPin && setIsTagMode(true)}
             disabled={editingPin !== null}
-            className={`flex items-center justify-center p-3 rounded-lg transition-colors bg-white ${
-              isTagMode ? "text-black" : "text-gray-400 hover:text-gray-600"
-            } ${editingPin !== null ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+            className={`flex items-center justify-center p-3 rounded-lg transition-colors bg-white ${isTagMode ? "text-black" : "text-gray-400 hover:text-gray-600"
+              } ${editingPin !== null ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
             data-tooltip-id="tag-button-tooltip"
             data-tooltip-content="Add a Tag to the Image!"
           >
             <Tag className="h-5 w-5" />
             <Tooltip id="tag-button-tooltip" />
           </button>
-            {/* Exit Button */}
+          {/* Exit Button */}
           <button
             type="button"
             onClick={() => router.push("/")}
             data-tooltip-id="exit-button-tooltip"
             data-tooltip-content="Exit to Home"
             className="flex items-center justify-center p-3 rounded-lg transition-colors text-black bg-white"
-            >
+          >
             <House>
             </House>
-            </button>
-            <Tooltip id="exit-button-tooltip" />
+          </button>
+          <Tooltip id="exit-button-tooltip" />
         </div>
 
         {/* Share Button */}
@@ -468,7 +478,7 @@ export default function PreviewPage() {
             "Share"
           )}
         </Button>
-        
+
       </div>
 
       {/* Mobile-friendly tag naming overlay */}
@@ -493,6 +503,23 @@ export default function PreviewPage() {
                             placeholder="Enter item name..."
                             className="w-full bg-black border-gray-800 text-white text-base h-12 rounded-md"
                             autoFocus
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  {/* Tag URL (NEW FIELD) */}
+                  <FormField
+                    control={form.control}
+                    name="tagUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            aria-label="Tag URL input"
+                            placeholder="Optional link (e.g., https://example.com)"
+                            className="w-full bg-black border-gray-800 text-white text-base h-12 rounded-md mt-4"
                             {...field}
                           />
                         </FormControl>

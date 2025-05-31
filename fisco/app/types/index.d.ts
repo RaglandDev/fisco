@@ -3,6 +3,7 @@ export type Tag = {
     x: number,
     y: number,
     label: string
+    url?: string;
 }
 
 export type Post = {

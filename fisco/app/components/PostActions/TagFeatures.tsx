@@ -97,14 +97,25 @@ export function TagsDisplay({ tags, visible }: TagsDisplayProps) {
                   <Tag className="h-6 w-6 text-red-500 fill-red-500/50" />
                 </div>
 
-{/* since parent toggles opacity, e2e tests can still 'see' this element unless you check for conditional attribute vis/notvis*/}
+                {/* since parent toggles opacity, e2e tests can still 'see' this element unless you check for conditional attribute vis/notvis*/}
                 {/* tag label */}
                 {tag.label && (
-                  <div
-                    className={`${visible ? 'vis' : 'notvis'} absolute ${labelPosition.top} ${labelPosition.left} ${labelPosition.origin} transform ${labelPosition.transform} bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-30`}
-                  >
-                    {tag.label}
-                  </div>
+                  tag.url ? (
+                    <a
+                      href={tag.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${visible ? 'vis' : 'notvis'} absolute ${labelPosition.top} ${labelPosition.left} ${labelPosition.origin} transform ${labelPosition.transform} bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-30 hover:underline cursor-pointer`}
+                    >
+                      {tag.label}
+                    </a>
+                  ) : (
+                    <div
+                      className={`${visible ? 'vis' : 'notvis'} absolute ${labelPosition.top} ${labelPosition.left} ${labelPosition.origin} transform ${labelPosition.transform} bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-30`}
+                    >
+                      {tag.label}
+                    </div>
+                  )
                 )}
               </div>
             );
