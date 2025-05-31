@@ -26,6 +26,7 @@ export default function CommentButton({ post, onCommentClick }: CommentButtonPro
   return (
     <button
       aria-label="Comment button"
+      data-tedid="Comment button"
       onClick={handleClick}
       className="flex flex-col items-center transition-transform duration-200 hover:scale-110"
     >

@@ -41,6 +41,7 @@ export default function CommentItem({ commentData, isOwner, onDelete }: CommentI
             onClick={onDelete}
             className={commentItemStyles.deleteButton}
             aria-label="Delete comment"
+            data-testid="Delete comment"
           >
             <Trash2 className={commentItemStyles.deleteIcon} />
           </Button>

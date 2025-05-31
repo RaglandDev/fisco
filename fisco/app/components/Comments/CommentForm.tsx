@@ -43,6 +43,7 @@ export function CommentForm({ onSubmit, onError }: CommentFormProps) {
       onSubmit={handleSubmit}
       className={commentFormStyles.form}
       aria-label="Add comment"
+      data-testid="Add comment"
     >
       <div className={commentFormStyles.inputContainer}>
         <input
@@ -63,6 +64,8 @@ export function CommentForm({ onSubmit, onError }: CommentFormProps) {
       <DrawerFooter className={commentFormStyles.footer}>
         <Button 
           type="submit" 
+          aria-label="Submit commnet"
+          data-testid="Submit comment"
           className={commentFormStyles.submitButton}
           disabled={isSubmitting || !comment.trim()}
         >
