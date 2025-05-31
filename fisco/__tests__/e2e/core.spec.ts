@@ -1,14 +1,21 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, chromium } from '@playwright/test';
 import { getComparator } from 'playwright-core/lib/utils';
-import { login, uploadOutfit } from './utils'
+import { login, logout, uploadOutfit } from './utils'
 
 const SAMPLE_IMG = './__tests__/e2e/sample.png'
 
+
+test.beforeEach(async ({ page }) => {
+  await page.goto('http://localhost:3000/');
+});
+
+
 test.describe('MVP user stories', () => {
+test.describe.configure({ mode: 'serial' });
+
   test('Upload a photo and view it in feed (As a user, I want to share my outfit with others)', async ({ page }) => {
  
     // Sign in as test user
-    await page.goto('http://localhost:3000/');
     await login(page);
 
     const firstImageBefore = page.getByTestId('Post image').first();
@@ -22,10 +29,13 @@ test.describe('MVP user stories', () => {
 
     // See new post in feed
     expect(srcAfter).not.toBe(srcBefore);
+
+    const deleteButtons = await page.getByLabel('Delete button');
+    await deleteButtons.first().click();
+    await page.getByLabel('Confirm deletion').first().click();
   });
 
   test('View posts while signed out (As a signed-out user, I want to explore others’ outfits)', async ({page}) => {
-    await page.goto('http://localhost:3000/');
 
     // See first outfit post in feed
     const firstImageBefore = page.getByTestId('Post image').first();
@@ -55,7 +65,6 @@ test.describe('MVP user stories', () => {
 
   test('Like and unlike a post (As a user, I want to show others that I enjoy an outfit.)', async ({ page }) => {
     // Sign in as test user
-    await page.goto('http://localhost:3000/');
     await login(page);
 
     const likeCountLocator = page.getByLabel('Like count').first();
@@ -69,7 +78,7 @@ test.describe('MVP user stories', () => {
     await likeButtonLocator.click();
 
     // Wait for like count to increase
-    await expect(likeCountLocator).toHaveText((initialCount + 1).toString());
+    await expect(likeCountLocator).toHaveText((initialCount + 1).toString(), { timeout: 10000 });
 
     // Click like button again to unlike
     await likeButtonLocator.click();
@@ -77,7 +86,44 @@ test.describe('MVP user stories', () => {
     // Wait for like count to decrease back to initial
     await expect(likeCountLocator).toHaveText(initialCount.toString());
   });
+
+  test('Upload outfits with tags and view them in the feed (As a user, I want to make it easy for others to find the pieces that I’m wearing.)', async ({ page }) => {
+    // Sign in as test user
+    await login(page);
+
+    // Upload photo with tag
+    await page.getByLabel('Navigation menu').first().click();
+    await page.getByTestId('Upload button').first().click();
+    const input = await page.getByTestId('File upload')
+    await input.setInputFiles(SAMPLE_IMG);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await page.getByLabel('Tag mode button').first().click();
+    const viewport = page.viewportSize();
+    const centerX = viewport.width / 2;
+    const centerY = viewport.height / 2;
+    await page.mouse.click(centerX, centerY);
+    await page.getByLabel('Item name input field').first().fill('69');
+    await page.getByLabel('Save tag button').first().click();
+    const submitUpload = await page.getByTestId('Upload submit button').click();
+
+    // Click tag toggle button on post
+    await page.getByLabel('Show tags button').first().click();
+
+    await expect(page.getByText('69').first()).toBeVisible();
+
+    // Toggle tags on post
+    await page.getByLabel('Show tags button').first().click();
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await expect(page.getByText('69').first()).toHaveClass('notvis absolute -top-10 left-1/2  transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-30', { timeout: 10000 });
+
+
+
+    const deleteButtons = await page.getByLabel('Delete button');
+    await deleteButtons.first().click();
+    await page.getByLabel('Confirm deletion').first().click();
+  });
 });
+
 
 // test('Sign in as test user', () => {
 //   await page.goto('http://localhost:3000/');

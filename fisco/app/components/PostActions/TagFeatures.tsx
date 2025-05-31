@@ -57,6 +57,7 @@ export function TagButton({ tagsVisible, onToggleTags }: TagButtonProps) {
   return (
     <button
       aria-label="Show tags button"
+      data-testid="Show tags button"
       onClick={onToggleTags}
       className={`flex flex-col items-center transition-all duration-200 hover:scale-110 ${tagsVisible ? "text-red-500" : "text-white"}`}
     >
@@ -96,10 +97,11 @@ export function TagsDisplay({ tags, visible }: TagsDisplayProps) {
                   <Tag className="h-6 w-6 text-red-500 fill-red-500/50" />
                 </div>
 
+{/* since parent toggles opacity, e2e tests can still 'see' this element unless you check for conditional attribute vis/notvis*/}
                 {/* tag label */}
                 {tag.label && (
                   <div
-                    className={`absolute ${labelPosition.top} ${labelPosition.left} ${labelPosition.origin} transform ${labelPosition.transform} bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-30`}
+                    className={`${visible ? 'vis' : 'notvis'} absolute ${labelPosition.top} ${labelPosition.left} ${labelPosition.origin} transform ${labelPosition.transform} bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-30`}
                   >
                     {tag.label}
                   </div>

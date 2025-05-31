@@ -17,6 +17,14 @@ export async function login(page: Page) {
   await page.getByLabel('Submit login').first().click();
 }
 
+export async function logout(page: Page) {
+  // Click navigation menu button   
+  await page.getByLabel('Navigation menu').first().click();
+
+  // Click logout button   
+  await page.getByRole('button', { name: 'Sign out button' }).first().click();
+}
+
 export async function uploadOutfit(page: Page, filePath: string) {
   // Click navigation menu button   
   await page.getByLabel('Navigation menu').first().click();

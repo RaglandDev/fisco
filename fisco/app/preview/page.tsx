@@ -424,6 +424,8 @@ export default function PreviewPage() {
           {/* Add tag mode button */}
           <button
             type="button"
+            aria-label="Tag mode button"
+            data-testid="Tag mode button"
             onClick={() => !editingPin && setIsTagMode(true)}
             disabled={editingPin !== null}
             className={`flex items-center justify-center p-3 rounded-lg transition-colors bg-white ${
@@ -486,6 +488,8 @@ export default function PreviewPage() {
                       <FormItem>
                         <FormControl>
                           <Input
+                            aria-label="Item name input field"
+                            data-testid="Item name input field"
                             placeholder="Enter item name..."
                             className="w-full bg-black border-gray-800 text-white text-base h-12 rounded-md"
                             autoFocus
@@ -508,6 +512,8 @@ export default function PreviewPage() {
                   </Button>
                   <div className="w-px bg-gray-800" />
                   <Button
+                    aria-label="Save tag button"
+                    data-testid="Save tag button"
                     type="submit"
                     disabled={!form.formState.isValid}
                     className="flex-1 rounded-none h-14 bg-white text-black hover:bg-gray-200 text-base font-medium"
