@@ -23,6 +23,35 @@ test.describe('MVP user stories', () => {
     // See new post in feed
     expect(srcAfter).not.toBe(srcBefore);
   });
+
+  test('View posts while signed out (As a signed-out user, I want to explore others’ outfits)', async ({page}) => {
+    await page.goto('http://localhost:3000/');
+
+    // See first outfit post in feed
+    const firstImageBefore = page.getByTestId('Post image').first();
+    const srcBefore = await firstImageBefore.getAttribute('src');
+
+    // Scroll down 
+    await page.mouse.wheel(0, 1000);
+
+    // Wait for a new image with a different 'src' to appear
+    await page.waitForFunction(
+      ([testId, srcBefore]) => {
+        const images = Array.from(document.querySelectorAll(`[data-testid="${testId}"]`));
+        return images.some(img => img.getAttribute('src') !== srcBefore);
+      },
+      ['Post image', srcBefore],
+      { timeout: 5000 }
+    );
+
+    // Scroll up
+    await page.mouse.wheel(0, -1000);
+
+    // See first outfit post in feed
+    const firstImageAfter = page.getByTestId('Post image').first();
+    const srcAfter = await firstImageAfter.getAttribute('src');
+    expect(srcAfter).toBe(srcBefore);
+  })
 });
 
 // test('Sign in as test user', () => {
