@@ -13,6 +13,10 @@ jobs:
       NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}}
       CLERK_SECRET_KEY: ${{secrets.CLERK_SECRET_KEY}}
+      ACCESS_KEY: ${{secrets.ACCESS_KEY}}
+      SECRET_KEY: ${{secrets.SECRET_KEY}}
+      BUCKET_NAME: ${{secrets.BUCKET_NAME}}
+      REGION: ${{secrets.REGION}}
       EMAIL: ${{secrets.EMAIL}}
       PASS: ${{secrets.PASS}}
     steps:
