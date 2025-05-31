@@ -77,7 +77,7 @@ export default function DeleteButton({ post, userUUID, onPostDeleted }: DeleteBu
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700 text-white border border-gray-700"
               aria-label="Confirm deletion"
-              data-testid="Confirm deletion"
+              data-testid="alert-dialog-action"
               onClick={handleDelete}
             >
               Delete
