@@ -1,19 +1,29 @@
 import { test, expect } from '@playwright/test';
 import { getComparator } from 'playwright-core/lib/utils';
-import { login } from './utils'
+import { login, uploadOutfit } from './utils'
+
+const SAMPLE_IMG = './__tests__/e2e/sample.png'
 
 test.describe('MVP user stories', () => {
-  test('Sign in as test user', async ( {page} ) => {
+  test('Upload a photo and view it in feed (As a user, I want to share my outfit with others)', async ({ page }) => {
+ 
+    // Sign in as test user
     await page.goto('http://localhost:3000/');
-
     await login(page);
 
-    // Confirm login by checking post image
-    const firstImage = page.getByTestId('Post image').first();
-    await expect(firstImage).toBeVisible(); 
-  })   
-})
+    const firstImageBefore = page.getByTestId('Post image').first();
+    const srcBefore = await firstImageBefore.getAttribute('src');
 
+    // Upload outfit
+    await uploadOutfit(page, SAMPLE_IMG);
+
+    const firstImageAfter = page.getByTestId('Post image').first();
+    const srcAfter = await firstImageAfter.getAttribute('src');
+
+    // See new post in feed
+    expect(srcAfter).not.toBe(srcBefore);
+  });
+});
 
 // test('Sign in as test user', () => {
 //   await page.goto('http://localhost:3000/');
@@ -77,38 +87,38 @@ test.describe('MVP user stories', () => {
 //     await page.getByText('Welcome back').waitFor()
 //   });
 
-//       test('Upload a photo and view it in feed', async ({ page }) => {
-//         await page.goto('http://localhost:3000/');
+    //   test('Upload a photo and view it in feed', async ({ page }) => {
+    //     await page.goto('http://localhost:3000/');
 
-//         const uploadPageButton = page.getByLabel('Upload page button').first();
-//         await uploadPageButton.click();
-//         await page.getByText('Share your outfit!').waitFor();
-//         await page.waitForTimeout(500)
+    //     const uploadPageButton = page.getByLabel('Upload page button').first();
+    //     await uploadPageButton.click();
+    //     await page.getByText('Share your outfit!').waitFor();
+    //     await page.waitForTimeout(500)
 
-//         const uploadButton = page.getByLabel('Upload button').first();
-//         await uploadButton.click();
+    //     const uploadButton = page.getByLabel('Upload button').first();
+    //     await uploadButton.click();
 
-//         const input = await page.getByTestId('File upload')
-//         await input.setInputFiles('./__tests__/e2e/sample.png');
+    //     const input = await page.getByTestId('File upload')
+    //     await input.setInputFiles('./__tests__/e2e/sample.png');
 
-//         await page.waitForTimeout(1000)
+    //     await page.waitForTimeout(1000)
 
-//          // Scroll to bottom
-//         for (let i = 0; i < 20; i++) {
-//           await page.mouse.wheel(0, 500);
-//           await page.waitForTimeout(200)
-//         }
+    //      // Scroll to bottom
+    //     for (let i = 0; i < 20; i++) {
+    //       await page.mouse.wheel(0, 500);
+    //       await page.waitForTimeout(200)
+    //     }
 
-//         // Search for a new image with the same uploaded 'src'
-//         await page.waitForFunction(
-//           ([testId]) => {
-//             const images = Array.from(document.querySelectorAll(`[data-testid="${testId}"]`));
-//             return images.some(img => img.getAttribute('src') == 'sample.png');
-//           },
-//           ['Post image'],
-//           { timeout: 5000 }
-//         );
-//     });
+    //     // Search for a new image with the same uploaded 'src'
+    //     await page.waitForFunction(
+    //       ([testId]) => {
+    //         const images = Array.from(document.querySelectorAll(`[data-testid="${testId}"]`));
+    //         return images.some(img => img.getAttribute('src') == 'sample.png');
+    //       },
+    //       ['Post image'],
+    //       { timeout: 5000 }
+    //     );
+    // });
 
 //     test('Navigate to login page', async ({ page }) => {
 //       await page.goto('http://localhost:3000/');

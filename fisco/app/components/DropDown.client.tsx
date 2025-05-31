@@ -83,6 +83,8 @@ export default function DropDownMenu() {
             {/* Upload Button */}
             <button
               onClick={userId ? handleUpload : () => (window.location.href = "/login")}
+              aria-label="Upload button"
+              data-testid="Upload button"
               className="flex items-center gap-2 p-2 w-48 text-left text-white"
             >
               <Upload className="w-6 h-6" /> Upload

@@ -452,6 +452,8 @@ export default function PreviewPage() {
         {/* Share Button */}
         <Button
           onClick={handleSubmit}
+          aria-label="Upload submit button"
+          data-testid="Upload submit button"
           disabled={isSubmitting || !imageUrl || !!error || editingPin !== null}
           className="px-8 py-3 text-lg bg-white text-black hover:bg-gray-100 disabled:bg-gray-300 disabled:text-gray-500"
         >
