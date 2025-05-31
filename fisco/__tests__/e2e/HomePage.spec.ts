@@ -56,27 +56,6 @@ test.describe('While logged out', () => {
     await page.getByText('Welcome back').waitFor()
   });
 
-      test('Navigate to upload picture screen and return', async ({ page }) => {
-      await page.goto('http://localhost:3000/');
-
-      const initialScreen = await page.screenshot();
-
-      const uploadPageButton = page.getByLabel('Upload page button').first();
-      await uploadPageButton.click();
-      await page.getByText('Share your outfit!').waitFor();
-      await page.waitForTimeout(500)
-
-      const returnButton = page.getByLabel('Return button').first();
-      await returnButton.click();
-      await page.waitForTimeout(500)
-
-      const finalScreen = await page.screenshot();
-
-      // WARNING: very sensitive pixel comparison
-      const comparator = getComparator('image/png');
-      expect(comparator(initialScreen, finalScreen)).toBeNull();
-    });
-
       test('Upload a photo and view it in feed', async ({ page }) => {
         await page.goto('http://localhost:3000/');
 

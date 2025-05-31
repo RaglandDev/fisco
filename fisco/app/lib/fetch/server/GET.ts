@@ -18,7 +18,14 @@ export async function getHomeData(limit: number = 2, offset: number = 0) {
       await syncUser();
     }
   } catch (err) {
-    console.log(err);
+    if (err instanceof AggregateError) {
+    console.error('AggregateError:', err.message);
+    for (const individualError of err.errors) {
+      console.error('Individual error:', individualError);
+    }
+  } else {
+    console.error('Error:', err);
+  }
     return null;
   }
 
