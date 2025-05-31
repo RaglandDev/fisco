@@ -13,6 +13,8 @@ jobs:
       NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}}
       CLERK_SECRET_KEY: ${{secrets.CLERK_SECRET_KEY}}
+      EMAIL: ${{secrets.EMAIL}}
+      PASS: ${{secrets.PASS}}
     steps:
       - uses: actions/checkout@v3
 
