@@ -7,6 +7,7 @@
 3. run ``npm build``
 4. create a file called ``.env.local`` place it in fisco/fisco/
 5. copy provided environment variables into ``.env.local``
+#### Note: the database URL provided in .env.local connects to the development data base
 
 ### Start the server
 1. navigate to fisco/fisco/
@@ -21,4 +22,4 @@
 1. navigate to fisco/fisco/
 2. run ``npm run e2e``
 
-#### Note: the database URL provided in .env.local connects to the development data base
+
