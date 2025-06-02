@@ -1,10 +1,12 @@
 # [fisco](https://fisco.social/)
 
-## Instructions to run locally
+## Local
 ### Setup 
 1. navigate to fisco/fisco/
 2. run ``npm install``
 3. run ``npm build``
+4. create a file called ``.env.local`` place it in fisco/fisco/
+5. copy provided environment variables into ``.env.local``
 
 ### Start the server
 1. navigate to fisco/fisco/
