@@ -190,22 +190,27 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
         <div className="flex items-center justify-center gap-6">
           <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white relative">
             {isOwner ? (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full h-full flex items-center justify-center bg-gray-800 hover:bg-gray-700"
-              >
-                {imageSrc ? (
-                  <Image
-                    src={imageSrc}
-                    alt="Profile"
-                    width={96}
-                    height={96}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Plus className="w-10 h-10 text-white opacity-70" />
-                )}
-              </button>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full h-full flex items-center justify-center bg-gray-800 hover:bg-gray-700"
+                >
+                  {imageSrc ? (
+                    <Image
+                      src={imageSrc}
+                      alt="Profile"
+                      width={96}
+                      height={96}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Plus className="w-10 h-10 text-white opacity-70" />
+                  )}
+                  {/* Always show the plus icon overlay with transparency if it's your own profile */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black opacity-50 rounded-full">
+                    <Plus className="w-12 h-12 text-white opacity-100" />
+                  </div>
+                </button>
+            
             ) : (
               imageSrc && (
                 <Image
