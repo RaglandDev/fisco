@@ -1,5 +1,4 @@
 # fisco
-- for the complete project process documentation, click [here](https://docs.google.com/document/d/1RMdfvFb9Hu0y9cLgaM8NDjAhtJDZPDw-JVDqmp1DBoI/edit?usp=sharing)
 - for the live site, click [here](https://fisco.social/)
 
 ## Local
