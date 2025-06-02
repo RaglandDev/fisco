@@ -1,26 +1,24 @@
 import React from "react";
-import { Button } from "@/components/ui/button"
-import { Trash2 } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
-import type { Comment } from "@/types/index"
-import { commentItemStyles } from "@/components/Comments/styles"
-import { formatRelativeTime } from "@/lib/utils"
+import type { Comment } from "@/types/index";
+import { commentItemStyles } from "@/components/Comments/styles";
+import { formatRelativeTime } from "@/lib/utils";
 
 interface CommentItemProps {
-  commentData: Comment
-  isOwner: boolean | null | string
-  onDelete: () => void
+  commentData: Comment;
+  isOwner: boolean | null | string;
+  onDelete: () => void;
 }
 
 export default function CommentItem({ commentData, isOwner, onDelete }: CommentItemProps) {
   const relativeTimeStamp = (created: string) => {
-    const formatted = formatRelativeTime(created)
-    if (formatted) {
-      return formatted
-    }
+    const formatted = formatRelativeTime(created);
+    if (formatted) return formatted;
+    return "Invalid date";
+  };
 
-    return "Invalid date"
-  }
   return (
     <div className={commentItemStyles.container}>
       <div className={commentItemStyles.meta}>
@@ -28,7 +26,9 @@ export default function CommentItem({ commentData, isOwner, onDelete }: CommentI
           @{commentData.first_name || "Anonymous"} {commentData.last_name ?? ""}
         </span>
         <span className={commentItemStyles.separator}>•</span>
-        <span className={commentItemStyles.timestamp}>{relativeTimeStamp(commentData.created_at)}</span>
+        <span className={commentItemStyles.timestamp}>
+          {relativeTimeStamp(commentData.created_at)}
+        </span>
       </div>
 
       <p className={commentItemStyles.content}>{commentData.comment_text}</p>
@@ -48,5 +48,5 @@ export default function CommentItem({ commentData, isOwner, onDelete }: CommentI
         </div>
       )}
     </div>
-  )
+  );
 }
