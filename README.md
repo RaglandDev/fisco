@@ -1,5 +1,6 @@
 # fisco
 - for the live site, click [here](https://fisco.social/)
+- for the complete documentation of the project from start to finish, click [here](https://docs.google.com/document/d/1qSkXtRqSHSqlg3xdskkeSWdXXRJ7ijJkrRAP72uYszk/edit?usp=sharing)
 
 ## Local
 ### Setup 
