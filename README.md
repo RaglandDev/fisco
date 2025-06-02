@@ -20,3 +20,5 @@
 ### Run end-to-end tests
 1. navigate to fisco/fisco/
 2. run ``npm run e2e``
+
+#### Note: the database URL provided in .env.local connects to the development data base
