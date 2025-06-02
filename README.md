@@ -1,4 +1,4 @@
-# fisco[https://fisco.social/]
+# [fisco](https://fisco.social/)
 
 ## Instructions to run locally
 ### Setup 
