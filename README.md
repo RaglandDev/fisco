@@ -22,4 +22,4 @@
 1. navigate to fisco/fisco/
 2. run ``npm run e2e``
 
-
+## For the complete project documentation, click [here](https://docs.google.com/document/d/1RMdfvFb9Hu0y9cLgaM8NDjAhtJDZPDw-JVDqmp1DBoI/edit?usp=sharing)
