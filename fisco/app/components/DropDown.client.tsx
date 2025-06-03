@@ -54,7 +54,7 @@ export default function DropDownMenu() {
     <>
       {/* Gradient background behind the dropdown menu */}
       {isOpen && (
-        <div className="absolute top-0 left-0 w-screen h-70 bg-gradient-to-b from-black/70 to-transparent z-10 pointer-events-none transition-opacity duration-300 ease-in-out"></div>
+        <div className="absolute top-0 left-0 w-screen h-90 bg-gradient-to-b from-black/100 to-transparent z-10 pointer-events-none transition-opacity duration-300 ease-in-out"></div>
       )}
 
       <div className="fixed top-1 left-1 z-50">

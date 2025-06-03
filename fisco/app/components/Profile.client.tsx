@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import DropDownMenu from "@/components/DropDown.client";
-import { Plus, Edit } from 'lucide-react';
+import { Plus, Edit, User } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -188,31 +188,9 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
     <>
       <div className="w-full bg-black text-white p-8 flex flex-col items-center space-y-6">
         <div className="flex items-center justify-center gap-6">
-          <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white relative">
-            {isOwner ? (
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-full flex items-center justify-center bg-gray-800 hover:bg-gray-700"
-                >
-                  {imageSrc ? (
-                    <Image
-                      src={imageSrc}
-                      alt="Profile"
-                      width={96}
-                      height={96}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Plus className="w-10 h-10 text-white opacity-70" />
-                  )}
-                  {/* Always show the plus icon overlay with transparency if it's your own profile */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black opacity-50 rounded-full">
-                    <Plus className="w-12 h-12 text-white opacity-100" />
-                  </div>
-                </button>
-            
-            ) : (
-              imageSrc && (
+          <div className="relative">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white">
+              {imageSrc ? (
                 <Image
                   src={imageSrc}
                   alt="Profile"
@@ -220,19 +198,35 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
                   height={96}
                   className="w-full h-full object-cover"
                 />
-              )
-            )}
+              ) : (
+                <div className="w-full h-full bg-black flex items-center justify-center">
+                  <User className="w-10 h-10 text-white" />
+                </div>
+              )}
+            </div>
+
             {isOwner && (
-              <input
-                id="profile-file-input"
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                ref={fileInputRef}
-                onChange={handleFileChange}
-              />
+              <>
+                {/* Upload button as floating plus icon only */}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute top-0.5 right-0.5 bg-red-500 p-1 rounded-full"
+                  title="Upload new profile picture"
+                >
+                  <Plus className="w-4 h-4 text-white" />
+                </button>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  style={{ display: "none" }}
+                  onChange={handleFileChange}
+                />
+              </>
             )}
           </div>
+
 
           <div className="text-center">
             <h1 className="text-2xl font-semibold">
@@ -251,7 +245,7 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
                 />
                 <button
                   onClick={updateBio}
-                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md"
+                  className="mt-2 px-4 py-2 bg-white text-black rounded-md"
                 >
                   Save Bio
                 </button>
@@ -261,8 +255,14 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
                 <div className="flex justify-center items-center gap-1 mt-2">
                   <p className="text-sm">{userData.bio || 'Add Bio'}</p>
                   {isOwner && (
-                    <button onClick={() => setIsEditing(true)} className="text-blue-400 hover:text-blue-300">
-                      <Edit className="w-4 h-4" />
+                    <button onClick={() => setIsEditing(true)} 
+                    
+                    // className="text-blue-400 hover:text-blue-300"
+                    className="bg-red-500 p-1 rounded-full"
+                    
+                    
+                    >
+                      <Edit className="w-4 h-4 text-white"/>
                     </button>
                   )}
                 </div>
@@ -273,15 +273,15 @@ const Profile: React.FC<ProfileProps> = ({ userId, isOwner }) => {
         <DropDownMenu />
       </div>
 
-      <div className="w-full bg-gray-100 py-4 flex justify-center gap-6">
+      <div className="w-full bg-black py-4 flex justify-center gap-6">
         <button
-          className={`px-4 py-2 rounded-md ${showSaved ? "bg-black text-white" : "bg-white text-black border"}`}
+          className={`px-4 py-2 rounded-md ${showSaved ? "bg-white text-black" : "bg-black text-white"}`}
           onClick={() => setShowSaved(true)}
         >
           Saved Posts
         </button>
         <button
-          className={`px-4 py-2 rounded-md ${!showSaved ? "bg-black text-white" : "bg-white text-black border"}`}
+          className={`px-4 py-2 rounded-md ${!showSaved ? "bg-white text-black" : "bg-black text-white"}`}
           onClick={() => setShowSaved(false)}
         >
           Your Posts
