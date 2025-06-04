@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSignIn, useAuth } from "@clerk/nextjs";
+import { useSignIn, useSignUp, useAuth } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,7 @@ export function LoginForm({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const { signIn, isLoaded, setActive } = useSignIn();
+  const { signUp } = useSignUp();
   const { isSignedIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -75,6 +76,23 @@ export function LoginForm({
     }
   }
 
+  async function handleGoogleOAuthSignUp() {
+    if (!isLoaded || !signUp) return;
+
+    setOauthLoading("google");
+
+    try {
+      await signUp.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: "/",
+      } as Parameters<typeof signUp.authenticateWithRedirect>[0]);
+    } catch (_err: unknown) {
+      console.error(_err);
+      setError("OAuth signup failed.");
+      setOauthLoading(null);
+    }
+  }
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -99,6 +117,20 @@ export function LoginForm({
                   {oauthLoading === "google" ? "Redirecting..." : "Login with Google"}
                 </Button>
               </div>
+
+                            {/* Google OAuth Button */}
+              <div className="flex flex-col gap-4">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  type="button"
+                  disabled={oauthLoading !== null || loading}
+                  onClick={handleGoogleOAuthSignUp}
+                >
+                  {oauthLoading === "google" ? "Redirecting..." : "Sign up with Google"}
+                </Button>
+              </div>
+
 
               {/* Divider */}
               <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">

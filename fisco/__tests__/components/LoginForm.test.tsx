@@ -29,6 +29,17 @@ vi.mock('@clerk/nextjs', () => ({
     },
     setActive: vi.fn(),
   }),
+    useSignUp: () => ({
+    isLoaded: true,
+    signUp: {
+      create: vi.fn().mockResolvedValue({
+        status: 'complete',
+        createdSessionId: 'mock-session-id',
+      }),
+      authenticateWithRedirect: vi.fn(),
+    },
+    setActive: vi.fn(),
+  }),
 }));
 
 
